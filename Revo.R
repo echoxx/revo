@@ -53,8 +53,8 @@ revo.trimmed <- select(revo, ccname, year, startdate, enddate, leader, age, age0
 dt_revo.trimmed <- data.table(revo.trimmed)
 dt_revo.trimmed[,year_diff:=c(0,diff(year)),by=list(ccname)]
 dt_revo.trimmed[,data_year:=seq_along(year),by=list(ccname)] 
-dt_revo.trimmed[,rev_diff:=c(0,diff(revolutionaryleader)),by=list(ccname)]
-dt_revo.trimmed[,polity_change:=c(0, diff(polity2)), by = list(ccname)]
+dt_revo.trimmed[,rev_diff:=c(0,diff(revolutionaryleader)),by=list(ccname)] ###This does not provide correct # of revolutions(77)###
+#dt_revo.trimmed[,polity_change:=c(0, diff(polity2)), by = list(ccname)]
 dt_revo.trimmed[,transition := polity < -10, by = ccname]
 
 #Define lag for pre/post revo counter
@@ -77,16 +77,41 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
 dt_revo.trimmed[,transition_years:=(count_transition)]
 
 
+polity_transition_change <- numeric(length = length(dt_revo.trimmed$polity2))
 polity_revo_change <- numeric(length = length(dt_revo.trimmed$polity2))
 for (i in seq_along(dt_revo.trimmed$transition)) {
-  polity_revo_change[i] <- diff(dt_revo.trimmed$polity2[i], lag = count_transition[i])
-  }
+  skip_back <- numeric()
+  if (is.na(dt_revo.trimmed$transition[i])){
+    next()
+  } else if (is.na(dt_revo.trimmed$transition[max(i-1,1)])) {
+    next()
+  } else if (( (dt_revo.trimmed$transition[i] == FALSE) && (dt_revo.trimmed$transition[max(i-1,1)] == TRUE) )) {
+     skip_back <- (1 + dt_revo.trimmed$transition_years[i-1])
+     polity_transition_change[i] <- dt_revo.trimmed$polity2[i] - dt_revo.trimmed$polity2[i-skip_back]
+     
+     #Checks if transition is also a revolution
+     if (dt_revo.trimmed$revolutionaryleader[i-(skip_back - 1)] == 1) { #skip_back - 1 since skip_back would be year before revolution begins
+       polity_revo_change[i] <- polity_transition_change[i]
+     } else {
+       polity_revo_change[i] <- 0
+     }
+  
+     } else  {
+       polity_transition_change[i] <- 0
+     }
+}
+  
+dt_revo.trimmed[,transition_polity_change:=polity_transition_change]
+dt_revo.trimmed[,revo_polity_change:=polity_revo_change]
 
-dt_revo.trimmed[,count_transition:=diff(polity2, lag = count_transition), by = list(ccname)]
 
 ## ggplot(dt_revo.trimmed,aes(x=data_year,y=polity,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname) 
 ##ggplot(dt_revo.trimmed,aes(x=data_year,y=polity2,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname)
 ##dt_revo.trimmed[,mean(polity),by=list(ccname)]
+
+# Revolution & Transition years count
+revo_total <- sum(dt_revo.trimmed$rev_dif == 1)
+transition_total <- sum(dt_revo.trimmed$transition_years == 1, na.rm = TRUE)
 
 #Democratizing 
 ##Democratizing - Frequency
