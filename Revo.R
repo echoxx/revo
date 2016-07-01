@@ -53,13 +53,27 @@ revo.trimmed <- select(revo, ccname, year, startdate, enddate, leader, age, age0
 dt_revo.trimmed <- data.table(revo.trimmed)
 dt_revo.trimmed[,year_diff:=c(0,diff(year)),by=list(ccname)]
 dt_revo.trimmed[,data_year:=seq_along(year),by=list(ccname)] 
-dt_revo.trimmed[,rev_diff:=c(0,diff(revolutionaryleader)),by=list(ccname)] ###This does not provide correct # of revolutions(77)###
-#dt_revo.trimmed[,polity_change:=c(0, diff(polity2)), by = list(ccname)]
+#dt_revo.trimmed[,rev_diff:=c(0,diff(revolutionaryleader)),by=list(ccname)] ###This does not provide correct # of revolutions(77)###
 dt_revo.trimmed[,transition := polity < -10, by = ccname]
 
-#Define lag for pre/post revo counter
+
 ##Way to not use a for loop?
-##Needs to be set equal to "lag" for diff()
+
+#New revolution/revolutionary leader?
+##This does not provide correct # of revolutions either
+new_rev_vec <- numeric(length = (length(dt_revo.trimmed$transition)))
+for (i in seq_along(dt_revo.trimmed$transition)) {
+  if ( (dt_revo.trimmed$revolutionaryleader[i] == dt_revo.trimmed$revolutionaryleader[max(i-1,1)]) && 
+       (dt_revo.trimmed$revolutionaryleader[i]== 1) 
+       &&  (dt_revo.trimmed$leader[i] != dt_revo.trimmed$leader[max(i-1,1)])) {
+    new_rev_vec[i] <- 1
+  } else {
+    new_rev_vec[i] <- dt_revo.trimmed$revolutionaryleader[i] - dt_revo.trimmed$revolutionaryleader[max(i-1,1)]
+  }
+}
+
+dt_revo.trimmed[,new_rev:= new_rev_vec]
+
 count_transition <- numeric( length = length(dt_revo.trimmed$transition))
 for (i in seq_along(dt_revo.trimmed$transition)) { 
   if (is.na(dt_revo.trimmed$transition[i])) {
