@@ -7,7 +7,6 @@ library(foreign) #does not import column title descriptions
 library(dplyr) #for selecting columns
 
 revo <- read_dta("Measuring Revolution.COLGAN.2012Nov.dta")
-revo_noTitles <- read.dta("Measuring Revolution.COLGAN.2012Nov.dta")
 
 #Columns to select
 ## Review use of force vs irregular transition. Paper is not clear about whether use of force is subset of 
@@ -64,14 +63,17 @@ dt_revo.trimmed[,transition := polity < -10, by = ccname]
 count_transition <- numeric( length = length(dt_revo.trimmed$transition))
 for (i in seq_along(dt_revo.trimmed$transition)) { 
   if (is.na(dt_revo.trimmed$transition[i])) {
-    count_transition[i] <- 1
-    } else if (dt_revo.trimmed$transition[i] == TRUE) {
+    count_transition[i] <- 0
+  } else if (dt_revo.trimmed$transition[i] == TRUE && dt_revo.trimmed$ccname[i] == dt_revo.trimmed$ccname[i-1]) {
     count_transition[i] <- count_transition[(i-1)] + 1
-  } else {
+  } else if (dt_revo.trimmed$transition[i] == TRUE && dt_revo.trimmed$ccname[i] != dt_revo.trimmed$ccname[i-1]) {
     count_transition[i] <- 1
+  } else {
+    count_transition[i] <- 0
   }
 }
 
+#Transitions are NOT the same as revolutionary leaders
 dt_revo.trimmed[,transition_years:=(count_transition)]
 
 
