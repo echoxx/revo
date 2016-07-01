@@ -63,12 +63,12 @@ dt_revo.trimmed[,transition := polity < -10, by = ccname]
 ##This does not provide correct # of revolutions either
 new_rev_vec <- numeric(length = (length(dt_revo.trimmed$transition)))
 for (i in seq_along(dt_revo.trimmed$transition)) {
-  if ( (dt_revo.trimmed$revolutionaryleader[i] == dt_revo.trimmed$revolutionaryleader[max(i-1,1)]) && 
-       (dt_revo.trimmed$revolutionaryleader[i]== 1) 
-       &&  (dt_revo.trimmed$leader[i] != dt_revo.trimmed$leader[max(i-1,1)])) {
+  if ( (dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) && 
+       (dt_revo.trimmed$revolutionaryleader[i]== 1) &&
+       (dt_revo.trimmed$leader[i] != dt_revo.trimmed$leader[max(i-1,1)])) {
     new_rev_vec[i] <- 1
   } else {
-    new_rev_vec[i] <- dt_revo.trimmed$revolutionaryleader[i] - dt_revo.trimmed$revolutionaryleader[max(i-1,1)]
+    new_rev_vec[i] <- max(dt_revo.trimmed$revolutionaryleader[i] - dt_revo.trimmed$revolutionaryleader[max(i-1,1)],0)
   }
 }
 
@@ -119,6 +119,7 @@ dt_revo.trimmed[,transition_polity_change:=polity_transition_change]
 dt_revo.trimmed[,revo_polity_change:=polity_revo_change]
 
 
+###Jeremy's stuff
 ## ggplot(dt_revo.trimmed,aes(x=data_year,y=polity,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname) 
 ##ggplot(dt_revo.trimmed,aes(x=data_year,y=polity2,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname)
 ##dt_revo.trimmed[,mean(polity),by=list(ccname)]
@@ -137,6 +138,17 @@ democ_leaders_unique <- unique(democ_leaders)
 ###Democratizing - Frequency - Outputs
 democ_out_count <- length(democ_leaders_unique[,1])
 democ_out_countryyears <- length(democ_leaders[,1])
+
+###Create new data table only for 1) revolution and 2) transition state-years
+#retain time series
+transition_revo_index <-  dt_revo.trimmed[,.(transition == TRUE | revolutionaryleader == 1 | transition_polity_change !=0 | revo_polity_change != 0)] 
+transition_revo_index <- which(transition_revo_index == TRUE)
+dt_revo.transition.ts <- dt_revo.trimmed[transition_revo_index,]
+
+#DT that'that just shows polity changes for revos & transitions
+transition_revo_index <- dt_revo.transition.ts[,.(transition_polity_change !=0 | revo_polity_change !=0 )]
+transition_revo_index <- which(transition_revo_index == TRUE)
+dt_revo.transition <- dt_revo.transition.ts[transition_revo_index,]
 
 
 
