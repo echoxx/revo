@@ -54,6 +54,7 @@ revo.trimmed <- select(revo, ccname, year, startdate, enddate, leader, age, age0
 dt_revo.trimmed <- data.table(revo.trimmed)
 dt_revo.trimmed[,year_diff:=c(0,diff(year)),by=list(ccname)]
 dt_revo.trimmed[,data_year:=seq_along(year),by=list(ccname)] 
+dt_revo.trimmed[,rev_diff:=c(0,diff(revolutionaryleader)),by=list(ccname)]
 
 ## ggplot(dt_revo.trimmed,aes(x=data_year,y=polity,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname) 
 ##ggplot(dt_revo.trimmed,aes(x=data_year,y=polity2,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname)
