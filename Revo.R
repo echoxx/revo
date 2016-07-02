@@ -59,8 +59,7 @@ dt_revo.trimmed[,transition := polity < -10, by = ccname]
 
 ##Way to not use a for loop?
 
-#New revolution/revolutionary leader?
-##This does not provide correct # of revolutions either
+#If new revolution occurs in given year. Includes adjacent leaders that are both coded as revolutionary. All other years are coded 0.
 new_rev_vec <- numeric(length = (length(dt_revo.trimmed$transition)))
 for (i in seq_along(dt_revo.trimmed$transition)) {
   if ( (dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) && 
@@ -93,6 +92,8 @@ dt_revo.trimmed[,transition_years:=(count_transition)]
 
 polity_transition_change <- numeric(length = length(dt_revo.trimmed$polity2))
 polity_revo_change <- numeric(length = length(dt_revo.trimmed$polity2))
+polity_pre <- numeric(length = length(dt_revo.trimmed$polity2))
+polity_post <- numeric(length = length(dt_revo.trimmed$polity2))
 for (i in seq_along(dt_revo.trimmed$transition)) {
   skip_back <- numeric()
   if (is.na(dt_revo.trimmed$transition[i])){
@@ -109,20 +110,57 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
      } else {
        polity_revo_change[i] <- 0
      }
+     polity_pre[i] <- dt_revo.trimmed$polity2[i-skip_back]
+     polity_post[i] <- dt_revo.trimmed$polity[i]
   
      } else  {
        polity_transition_change[i] <- 0
      }
 }
   
+either_polity_counter <- numeric(length = length(dt_revo.trimmed$polity2))
+for (i in seq_along(either_polity_counter)) {
+  if(is.na(polity_transition_change[i]) | is.na(polity_revo_change[i]) ) {
+    either_polity_counter[i] <- NA
+    } else if(polity_transition_change[i] == polity_revo_change[i]) {
+    either_polity_counter[i] <- polity_transition_change[i]
+  } else  {
+    either_polity_counter[i] <- polity_transition_change[i] + polity_revo_change[i]
+  }
+}
+
+dt_revo.trimmed[,polity_pre_change:=polity_pre]
+dt_revo.trimmed[,polity_post_change:=polity_post]
 dt_revo.trimmed[,transition_polity_change:=polity_transition_change]
 dt_revo.trimmed[,revo_polity_change:=polity_revo_change]
+dt_revo.trimmed[,either_polity_change:=either_polity_counter]
 
-
-###Jeremy's stuff
-## ggplot(dt_revo.trimmed,aes(x=data_year,y=polity,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname) 
-##ggplot(dt_revo.trimmed,aes(x=data_year,y=polity2,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname)
+###Charts
+scatterplot <- ggplot(dt_revo.transition, aes(x = polity_pre_change, y = either_polity_change, color = revolutionaryleader)) + geom_point()
+multiple_country.ts <- ggplot(dt_revo.trimmed,aes(x=data_year,y=polity2,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname)
 ##dt_revo.trimmed[,mean(polity),by=list(ccname)]
+
+###DT only for 1) revolution and 2) transition state-years
+#retain time series
+transition_revo_index <-  dt_revo.trimmed[,.(transition == TRUE | revolutionaryleader == 1 | transition_polity_change !=0 | revo_polity_change != 0)] 
+transition_revo_index <- which(transition_revo_index == TRUE)
+dt_revo.transition.ts <- dt_revo.trimmed[transition_revo_index,]
+
+#DT that'that just shows polity changes for revos & transitions
+transition_years_counter <- numeric()
+for (i in seq_along(dt_revo.trimmed$polity2)) {
+  if(dt_revo.trimmed$transition_polity_change[i] != 0 | dt_revo.trimmed$revo_polity_change[i] != 0) {
+    transition_years_counter[i] <- dt_revo.trimmed$transition_years[i-1]
+  } else {
+    transition_years_counter[i] <- 0
+  }
+}
+
+dt_revo.trimmed[,length_transition:=transition_years_counter]
+
+transition_revo_index <- dt_revo.transition.ts[,.(transition_polity_change !=0 | revo_polity_change !=0 )]
+transition_revo_index <- which(transition_revo_index == TRUE)
+dt_revo.transition <- dt_revo.transition.ts[transition_revo_index,]
 
 # Revolution & Transition years count
 revo_total <- sum(dt_revo.trimmed$rev_dif == 1)
@@ -139,16 +177,7 @@ democ_leaders_unique <- unique(democ_leaders)
 democ_out_count <- length(democ_leaders_unique[,1])
 democ_out_countryyears <- length(democ_leaders[,1])
 
-###Create new data table only for 1) revolution and 2) transition state-years
-#retain time series
-transition_revo_index <-  dt_revo.trimmed[,.(transition == TRUE | revolutionaryleader == 1 | transition_polity_change !=0 | revo_polity_change != 0)] 
-transition_revo_index <- which(transition_revo_index == TRUE)
-dt_revo.transition.ts <- dt_revo.trimmed[transition_revo_index,]
 
-#DT that'that just shows polity changes for revos & transitions
-transition_revo_index <- dt_revo.transition.ts[,.(transition_polity_change !=0 | revo_polity_change !=0 )]
-transition_revo_index <- which(transition_revo_index == TRUE)
-dt_revo.transition <- dt_revo.transition.ts[transition_revo_index,]
 
 
 
