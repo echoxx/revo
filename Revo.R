@@ -89,20 +89,55 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
 #Transitions are NOT the same as revolutionary leaders
 dt_revo.trimmed[,transition_years:=(count_transition)]
 
-#Transition or revo end
-##IS THIS NECESSARY?
-transition_revo_end <- numeric( length = length(dt_revo.trimmed$transition))
+#End of transition period? End of revolutionary transition?
+transition_end <- numeric()
+revo_end <- numeric()
 for (i in seq_along(dt_revo.trimmed$transition)) {
   if (is.na(dt_revo.trimmed$transition[i]) | is.na(dt_revo.trimmed$transition[max(i-1,1)])) {
-    transition_revo_end[i] <- 0
-  } else if (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == TRUE) {
-    transition_revo_end[i] <- TRUE
-  } else {
-    transition_revo_end[i] <- FALSE
+    transition_end[i] <- NA
+    revo_end[i] <- NA
+  } else if ( (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == TRUE) || 
+              (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == FALSE && dt_revo.trimmed$new_rev[i] == TRUE)) {
+    transition_end[i] <- TRUE
+    
+      if ((dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) | (dt_revo.trimmed$revolutionaryleader[i] == 1) ) {
+        revo_end[i] <- TRUE
+      } else {
+        revo_end[i] <- FALSE
+      }
+    
+    } else{
+    transition_end[i] <- FALSE
+    revo_end[i] <- FALSE
   }
 }
 
-dt_revo.trimmed[,end_transitionOrrevo:= transition_revo_end]
+#If post-transition leader is not same as transition/revo leader, who was transition/revo leader?
+transition_leader <- character(length= length(dt_revo.trimmed$leader))
+revo_leader <- character(length= length(dt_revo.trimmed$leader))
+for (i in seq_along(revo_end)) {
+  if (is.na(revo_end[i]) | is.na(transition_end[max(i-1,1)])) {
+    transition_leader[i] <- NA
+    revo_leader[i] <- NA
+  } else if (revo_end[i] == 1) {
+    revo_leader[i] <- dt_revo.trimmed$leader[max(i-1,1)]
+    transition_leader[i] <- dt_revo.trimmed$leader[max(i-1,1)]
+  } else if (transition_end[i] == 1) {
+    revo_leader[i] <- NA
+    transition_leader[i] <- dt_revo.trimmed$leader[max(i-1,1)]
+  } else {
+    revo_leader[i] <- NA
+    transition_leader[i] <- NA
+  }
+}
+
+dt_revo.trimmed[,leader_transition:= transition_leader]
+dt_revo.trimmed[,leader_revo:= revo_leader]
+dt_revo.trimmed[,end_transition:= transition_end]
+dt_revo.trimmed[,end_revo:= revo_end]
+
+
+
 
 #Calculate transition_polity_change and revo_polity_change columns
 polity_transition_change <- numeric(length = length(dt_revo.trimmed$polity2))
@@ -160,7 +195,6 @@ transition_years_counter <- numeric()
 for (i in seq_along(dt_revo.trimmed$polity2)) {
   if(is.na(polity_transition_change[i]) | is.na(polity_revo_change[i]) ) {
     either_polity_counter[i] <- NA
-  ########THIS LINE IS CALLING AN ERROR##########
     } else if(polity_transition_change[i] != 0 | polity_revo_change[i] != 0) {
     transition_years_counter[i] <- dt_revo.trimmed$transition_years[max(i-1)]
   } else {
@@ -176,19 +210,11 @@ dt_revo.trimmed[,revo_polity_change:=polity_revo_change]
 dt_revo.trimmed[,either_polity_change:=either_polity_counter]
 dt_revo.trimmed[,length_transition:=transition_years_counter]
 
-
-
-###DT only for 1) revolution and 2) transition state-years
-#retain time series
-transition_revo_index <-  dt_revo.trimmed[,.(transition == TRUE | revolutionaryleader == 1 | transition_polity_change !=0 | revo_polity_change != 0)] 
-transition_revo_index <- which(transition_revo_index == TRUE)
-dt_revo.transition.ts <- dt_revo.trimmed[transition_revo_index,]
-
-#DT that'that just shows polity changes for revos & transitions
-######THIS DOESN'T WORK. OMMITS CASES WHERE POLITY_CHANGE = 0
-transition_revo_index <- dt_revo.transition.ts[,.(transition_polity_change !=0 | revo_polity_change !=0 )]
-transition_revo_index <- which(transition_revo_index == TRUE)
-dt_revo.transition <- dt_revo.transition.ts[transition_revo_index,]
+##This creates a data table of all transitions + revolutions, and ties to Colgan's 77 revo figure##
+##Excludes revolutions where leader never had stable polity score (e.g. transition value for all years)
+##Example: Afghanistan - B. Rabbani
+transition_revo_index <- which(dt_revo.trimmed$end_transitionOrrevo == 1)
+dt_revo.transition <- dt_revo.trimmed[transition_revo_index,]
 dt_revo.transition <- dt_revo.transition[order(dt_revo.transition$ccname),]
 
 #####CHARTS#####
