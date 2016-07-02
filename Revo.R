@@ -111,7 +111,7 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
        polity_revo_change[i] <- 0
      }
      polity_pre[i] <- dt_revo.trimmed$polity2[i-skip_back]
-     polity_post[i] <- dt_revo.trimmed$polity[i]
+     polity_post[i] <- dt_revo.trimmed$polity2[i]
   
      } else  {
        polity_transition_change[i] <- 0
@@ -129,16 +129,28 @@ for (i in seq_along(either_polity_counter)) {
   }
 }
 
+#Return total transition years in year *after* transition ends (to line up with polity_change figures)
+transition_years_counter <- numeric()
+for (i in seq_along(dt_revo.trimmed$polity2)) {
+  if(is.na(polity_transition_change[i]) | is.na(polity_revo_change[i]) ) {
+    either_polity_counter[i] <- NA
+  ########THIS LINE IS CALLING AN ERROR##########
+    } else if(polity_transition_change[i] != 0 | polity_revo_change[i] != 0) {
+    transition_years_counter[i] <- dt_revo.trimmed$transition_years[max(i-1)]
+  } else {
+    transition_years_counter[i] <- 0
+  }
+}
+
+#Add new columns to DT
 dt_revo.trimmed[,polity_pre_change:=polity_pre]
 dt_revo.trimmed[,polity_post_change:=polity_post]
 dt_revo.trimmed[,transition_polity_change:=polity_transition_change]
 dt_revo.trimmed[,revo_polity_change:=polity_revo_change]
 dt_revo.trimmed[,either_polity_change:=either_polity_counter]
+dt_revo.trimmed[,length_transition:=transition_years_counter]
 
-###Charts
-scatterplot <- ggplot(dt_revo.transition, aes(x = polity_pre_change, y = either_polity_change, color = revolutionaryleader)) + geom_point()
-multiple_country.ts <- ggplot(dt_revo.trimmed,aes(x=data_year,y=polity2,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname)
-##dt_revo.trimmed[,mean(polity),by=list(ccname)]
+
 
 ###DT only for 1) revolution and 2) transition state-years
 #retain time series
@@ -147,20 +159,78 @@ transition_revo_index <- which(transition_revo_index == TRUE)
 dt_revo.transition.ts <- dt_revo.trimmed[transition_revo_index,]
 
 #DT that'that just shows polity changes for revos & transitions
-transition_years_counter <- numeric()
-for (i in seq_along(dt_revo.trimmed$polity2)) {
-  if(dt_revo.trimmed$transition_polity_change[i] != 0 | dt_revo.trimmed$revo_polity_change[i] != 0) {
-    transition_years_counter[i] <- dt_revo.trimmed$transition_years[i-1]
-  } else {
-    transition_years_counter[i] <- 0
-  }
-}
-
-dt_revo.trimmed[,length_transition:=transition_years_counter]
-
+######THIS DOESN'T WORK. OMMITS CASES WHERE POLITY_CHANGE = 0
 transition_revo_index <- dt_revo.transition.ts[,.(transition_polity_change !=0 | revo_polity_change !=0 )]
 transition_revo_index <- which(transition_revo_index == TRUE)
 dt_revo.transition <- dt_revo.transition.ts[transition_revo_index,]
+dt_revo.transition <- dt_revo.transition[order(dt_revo.transition$ccname),]
+
+#####CHARTS#####
+prechange_eitherpolity_revleader <- ggplot(dt_revo.transition, aes(x = polity_pre_change, y = either_polity_change, color = revolutionaryleader)) + geom_point()
+prechange_eitherpolity_revleader <- ggplot(dt_revo.transition, aes(x = polity_pre_change, y = either_polity_change, color = revolutionaryleader, size = length_transition)) + geom_point()
+postchange_eitherpolity_revleader <- ggplot(dt_revo.transition, aes(x = polity_post_change, y = either_polity_change, color = revolutionaryleader, size = length_transition)) + geom_point()
+multiple_country.ts <- ggplot(dt_revo.trimmed,aes(x=data_year,y=polity2,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname)
+
+##dt_revo.trimmed[,mean(polity),by=list(ccname)]
+
+#####OUTPUTS#####
+
+#Revolutionary leaders with positive positive polity effect
+pos_polity_revleaders_tally <- dt_revo.transition$either_polity_change > 0 & dt_revo.transition$revolutionaryleader == 1
+pos_polity_revleaders_index <- which(dt_revo.transition$either_polity_change > 0 & dt_revo.transition$revolutionaryleader == 1)
+pos_polity_revleaders <- dt_revo.transition[pos_polity_revleaders_index,either_polity_change]
+pos_polity_length_revleaders <- dt_revo.transition[pos_polity_revleaders_index, length_transition]
+
+count_pos_polity_revleaders <- sum(pos_polity_revleaders_tally)
+mean_pos_polity_revleaders <- mean(pos_polity_revleaders)
+mean_length_pos_polity_revleaders <- mean(pos_polity_length_revleaders)
+
+#Revolutionary leaders with negative polity effect
+neg_polity_revleaders_tally <- dt_revo.transition$either_polity_change < 0 & dt_revo.transition$revolutionaryleader == 1
+neg_polity_revleaders_index <- which(dt_revo.transition$either_polity_change < 0 & dt_revo.transition$revolutionaryleader == 1)
+neg_polity_revleaders <- dt_revo.transition[neg_polity_revleaders_index,either_polity_change]
+neg_polity_length_revleaders <- dt_revo.transition[neg_polity_revleaders_index, length_transition]
+
+count_neg_polity_revleaders <- sum(neg_polity_revleaders_tally)
+mean_neg_polity_revleaders <- mean(neg_polity_revleaders)
+mean_length_neg_polity_revleaders <- mean(neg_polity_length_revleaders)
+
+#Non-Revolutionary leaders with positive positive polity effect
+pos_polity_norevleaders_tally <- dt_revo.transition$either_polity_change > 0 & dt_revo.transition$revolutionaryleader == 0
+pos_polity_norevleaders_index <- which(dt_revo.transition$either_polity_change > 0 & dt_revo.transition$revolutionaryleader == 0)
+pos_polity_norevleaders <- dt_revo.transition[pos_polity_norevleaders_index,either_polity_change]
+pos_polity_length_norevleaders <- dt_revo.transition[pos_polity_norevleaders_index, length_transition]
+
+count_pos_polity_norevleaders <- sum(pos_polity_norevleaders_tally)
+mean_pos_polity_norevleaders <- mean(pos_polity_norevleaders)
+mean_length_pos_polity_norevleaders <- mean(pos_polity_length_norevleaders)
+
+#Non-Revolutionary leaders with negative polity effect
+neg_polity_norevleaders_tally <- dt_revo.transition$either_polity_change < 0 & dt_revo.transition$revolutionaryleader == 0
+neg_polity_norevleaders_index <- which(dt_revo.transition$either_polity_change < 0 & dt_revo.transition$revolutionaryleader == 0)
+neg_polity_norevleaders <- dt_revo.transition[neg_polity_norevleaders_index,either_polity_change]
+neg_polity_length_norevleaders <- dt_revo.transition[neg_polity_norevleaders_index, length_transition]
+
+count_neg_polity_norevleaders <- sum(neg_polity_norevleaders_tally)
+mean_neg_polity_norevleaders <- mean(neg_polity_norevleaders)
+mean_length_neg_polity_norevleaders <- mean(neg_polity_length_norevleaders)
+
+
+#Construct matrices by rev/norev, pos/neg polity
+##Transition count
+polity_summary <- matrix(c(count_pos_polity_revleaders, count_neg_polity_revleaders, 
+                           mean_pos_polity_revleaders, mean_neg_polity_revleaders,
+                           mean_length_pos_polity_revleaders, mean_length_neg_polity_revleaders,
+                           count_pos_polity_norevleaders, count_neg_polity_norevleaders,
+                           mean_pos_polity_norevleaders, mean_neg_polity_norevleaders,
+                           mean_length_pos_polity_norevleaders, mean_length_neg_polity_norevleaders), nrow=2, ncol=6, byrow = TRUE)
+rownames(polity_summary) <- c("Revolutionary", "Non-Revolutionary")
+colnames(polity_summary) <- c("Count_pos_polity", "Count_neg_polity", "Mean_pos_polity", "Mean_neg_polity", "Mean_pos_length", "Mean_neg_length")
+
+
+
+
+
 
 # Revolution & Transition years count
 revo_total <- sum(dt_revo.trimmed$rev_dif == 1)
