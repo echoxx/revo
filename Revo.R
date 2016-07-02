@@ -89,18 +89,34 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
 #Transitions are NOT the same as revolutionary leaders
 dt_revo.trimmed[,transition_years:=(count_transition)]
 
+#Transition or revo end
+##IS THIS NECESSARY?
+transition_revo_end <- numeric( length = length(dt_revo.trimmed$transition))
+for (i in seq_along(dt_revo.trimmed$transition)) {
+  if (is.na(dt_revo.trimmed$transition[i]) | is.na(dt_revo.trimmed$transition[max(i-1,1)])) {
+    transition_revo_end[i] <- 0
+  } else if (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == TRUE) {
+    transition_revo_end[i] <- TRUE
+  } else {
+    transition_revo_end[i] <- FALSE
+  }
+}
 
+dt_revo.trimmed[,end_transitionOrrevo:= transition_revo_end]
+
+#Calculate transition_polity_change and revo_polity_change columns
 polity_transition_change <- numeric(length = length(dt_revo.trimmed$polity2))
 polity_revo_change <- numeric(length = length(dt_revo.trimmed$polity2))
 polity_pre <- numeric(length = length(dt_revo.trimmed$polity2))
 polity_post <- numeric(length = length(dt_revo.trimmed$polity2))
+##Builds transition_polity_change, & codes revo_polity_change if transition period also a revolution
 for (i in seq_along(dt_revo.trimmed$transition)) {
   skip_back <- numeric()
   if (is.na(dt_revo.trimmed$transition[i])){
     next()
   } else if (is.na(dt_revo.trimmed$transition[max(i-1,1)])) {
     next()
-  } else if (( (dt_revo.trimmed$transition[i] == FALSE) && (dt_revo.trimmed$transition[max(i-1,1)] == TRUE) )) {
+    } else if (( (dt_revo.trimmed$transition[i] == FALSE) && (dt_revo.trimmed$transition[max(i-1,1)] == TRUE) )) {
      skip_back <- (1 + dt_revo.trimmed$transition_years[i-1])
      polity_transition_change[i] <- dt_revo.trimmed$polity2[i] - dt_revo.trimmed$polity2[i-skip_back]
      
@@ -117,6 +133,16 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
        polity_transition_change[i] <- 0
      }
 }
+
+##Checks revo_polity_change for revolutions that were not coded as transitions
+for (i in seq_along(dt_revo.trimmed$new_rev)) {
+  if (polity_revo_change[i] != 0) {
+    next()
+  } else if (dt_revo.trimmed$new_rev[i] == 1 && dt_revo.trimmed$transition[i] == FALSE) {
+    polity_revo_change[i] <- dt_revo.trimmed$polity2[i] - dt_revo.trimmed$polity2[i-1]
+  }
+}
+
   
 either_polity_counter <- numeric(length = length(dt_revo.trimmed$polity2))
 for (i in seq_along(either_polity_counter)) {
