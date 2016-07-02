@@ -213,8 +213,8 @@ dt_revo.trimmed[,length_transition:=transition_years_counter]
 ##This creates a data table of all transitions + revolutions, and ties to Colgan's 77 revo figure##
 ##Excludes revolutions where leader never had stable polity score (e.g. transition value for all years)
 ##Example: Afghanistan - B. Rabbani
-transition_revo_index <- which(dt_revo.trimmed$end_transitionOrrevo == 1)
-dt_revo.transition <- dt_revo.trimmed[transition_revo_index,]
+transition_index <- which(dt_revo.trimmed$end_transition == 1)
+dt_revo.transition <- dt_revo.trimmed[transition_index,]
 dt_revo.transition <- dt_revo.transition[order(dt_revo.transition$ccname),]
 
 #####CHARTS#####
@@ -223,7 +223,6 @@ prechange_eitherpolity_revleader <- ggplot(dt_revo.transition, aes(x = polity_pr
 postchange_eitherpolity_revleader <- ggplot(dt_revo.transition, aes(x = polity_post_change, y = either_polity_change, color = revolutionaryleader, size = length_transition)) + geom_point()
 multiple_country.ts <- ggplot(dt_revo.trimmed,aes(x=data_year,y=polity2,color=revolutionaryleader,group=1))+geom_line()+facet_wrap(~ccname)
 
-##dt_revo.trimmed[,mean(polity),by=list(ccname)]
 
 #####OUTPUTS#####
 
@@ -233,9 +232,21 @@ pos_polity_revleaders_index <- which(dt_revo.transition$either_polity_change > 0
 pos_polity_revleaders <- dt_revo.transition[pos_polity_revleaders_index,either_polity_change]
 pos_polity_length_revleaders <- dt_revo.transition[pos_polity_revleaders_index, length_transition]
 
-count_pos_polity_revleaders <- sum(pos_polity_revleaders_tally)
+count_pos_polity_revleaders <- sum(pos_polity_revleaders_tally, na.rm = TRUE)
 mean_pos_polity_revleaders <- mean(pos_polity_revleaders)
+median_pos_polity_revleaders <- median(pos_polity_revleaders)
 mean_length_pos_polity_revleaders <- mean(pos_polity_length_revleaders)
+
+#Revolutionary leaders with neutral polity effect
+neut_polity_revleaders_tally <- dt_revo.transition$either_polity_change == 0 & dt_revo.transition$revolutionaryleader == 1
+neut_polity_revleaders_index <- which(dt_revo.transition$either_polity_change == 0 & dt_revo.transition$revolutionaryleader == 1)
+neut_polity_revleaders <- dt_revo.transition[neut_polity_revleaders_index,either_polity_change]
+neut_polity_length_revleaders <- dt_revo.transition[neut_polity_revleaders_index, length_transition]
+
+count_neut_polity_revleaders <- sum(neut_polity_revleaders_tally, na.rm = TRUE)
+mean_neut_polity_revleaders <- mean(neut_polity_revleaders)
+median_neut_polity_revleaders <- median(neut_polity_revleaders)
+mean_length_neut_polity_revleaders <- mean(neut_polity_length_revleaders)
 
 #Revolutionary leaders with negative polity effect
 neg_polity_revleaders_tally <- dt_revo.transition$either_polity_change < 0 & dt_revo.transition$revolutionaryleader == 1
@@ -243,8 +254,9 @@ neg_polity_revleaders_index <- which(dt_revo.transition$either_polity_change < 0
 neg_polity_revleaders <- dt_revo.transition[neg_polity_revleaders_index,either_polity_change]
 neg_polity_length_revleaders <- dt_revo.transition[neg_polity_revleaders_index, length_transition]
 
-count_neg_polity_revleaders <- sum(neg_polity_revleaders_tally)
+count_neg_polity_revleaders <- sum(neg_polity_revleaders_tally, na.rm = TRUE)
 mean_neg_polity_revleaders <- mean(neg_polity_revleaders)
+median_neg_polity_revleaders <- median(neg_polity_revleaders)
 mean_length_neg_polity_revleaders <- mean(neg_polity_length_revleaders)
 
 #Non-Revolutionary leaders with positive positive polity effect
@@ -253,9 +265,21 @@ pos_polity_norevleaders_index <- which(dt_revo.transition$either_polity_change >
 pos_polity_norevleaders <- dt_revo.transition[pos_polity_norevleaders_index,either_polity_change]
 pos_polity_length_norevleaders <- dt_revo.transition[pos_polity_norevleaders_index, length_transition]
 
-count_pos_polity_norevleaders <- sum(pos_polity_norevleaders_tally)
+count_pos_polity_norevleaders <- sum(pos_polity_norevleaders_tally, na.rm = TRUE)
 mean_pos_polity_norevleaders <- mean(pos_polity_norevleaders)
+median_pos_polity_norevleaders <- median(pos_polity_norevleaders)
 mean_length_pos_polity_norevleaders <- mean(pos_polity_length_norevleaders)
+
+#Non-Revolutionary leaders with neutral positive polity effect
+neut_polity_norevleaders_tally <- dt_revo.transition$either_polity_change == 0 & dt_revo.transition$revolutionaryleader == 0
+neut_polity_norevleaders_index <- which(dt_revo.transition$either_polity_change == 0 & dt_revo.transition$revolutionaryleader == 0)
+neut_polity_norevleaders <- dt_revo.transition[neut_polity_norevleaders_index,either_polity_change]
+neut_polity_length_norevleaders <- dt_revo.transition[neut_polity_norevleaders_index, length_transition]
+
+count_neut_polity_norevleaders <- sum(neut_polity_norevleaders_tally, na.rm = TRUE)
+mean_neut_polity_norevleaders <- mean(neut_polity_norevleaders)
+median_neut_polity_norevleaders <- median(neut_polity_norevleaders)
+mean_length_neut_polity_norevleaders <- mean(neut_polity_length_norevleaders)
 
 #Non-Revolutionary leaders with negative polity effect
 neg_polity_norevleaders_tally <- dt_revo.transition$either_polity_change < 0 & dt_revo.transition$revolutionaryleader == 0
@@ -263,21 +287,25 @@ neg_polity_norevleaders_index <- which(dt_revo.transition$either_polity_change <
 neg_polity_norevleaders <- dt_revo.transition[neg_polity_norevleaders_index,either_polity_change]
 neg_polity_length_norevleaders <- dt_revo.transition[neg_polity_norevleaders_index, length_transition]
 
-count_neg_polity_norevleaders <- sum(neg_polity_norevleaders_tally)
+count_neg_polity_norevleaders <- sum(neg_polity_norevleaders_tally, na.rm = TRUE)
 mean_neg_polity_norevleaders <- mean(neg_polity_norevleaders)
+median_neg_polity_norevleaders <- median(neg_polity_norevleaders)
 mean_length_neg_polity_norevleaders <- mean(neg_polity_length_norevleaders)
+
 
 
 #Construct matrices by rev/norev, pos/neg polity
 ##Transition count
-polity_summary <- matrix(c(count_pos_polity_revleaders, count_neg_polity_revleaders, 
-                           mean_pos_polity_revleaders, mean_neg_polity_revleaders,
-                           mean_length_pos_polity_revleaders, mean_length_neg_polity_revleaders,
-                           count_pos_polity_norevleaders, count_neg_polity_norevleaders,
-                           mean_pos_polity_norevleaders, mean_neg_polity_norevleaders,
-                           mean_length_pos_polity_norevleaders, mean_length_neg_polity_norevleaders), nrow=2, ncol=6, byrow = TRUE)
+polity_summary <- matrix(c(count_pos_polity_revleaders, count_neut_polity_revleaders, count_neg_polity_revleaders, 
+                           mean_pos_polity_revleaders, mean_neut_polity_revleaders, mean_neg_polity_revleaders,
+                           median_pos_polity_revleaders, median_neut_polity_revleaders, median_neg_polity_revleaders,
+                           mean_length_pos_polity_revleaders, mean_length_neut_polity_revleaders, mean_length_neg_polity_revleaders,
+                           count_pos_polity_norevleaders, count_neut_polity_norevleaders, count_neg_polity_norevleaders,
+                           mean_pos_polity_norevleaders, mean_neut_polity_norevleaders, mean_neg_polity_norevleaders,
+                           median_pos_polity_norevleaders, median_neut_polity_norevleaders, median_neg_polity_norevleaders,
+                           mean_length_pos_polity_norevleaders, mean_length_neut_polity_norevleaders, mean_length_neg_polity_norevleaders), nrow=2, ncol=12, byrow = TRUE)
 rownames(polity_summary) <- c("Revolutionary", "Non-Revolutionary")
-colnames(polity_summary) <- c("Count_pos_polity", "Count_neg_polity", "Mean_pos_polity", "Mean_neg_polity", "Mean_pos_length", "Mean_neg_length")
+colnames(polity_summary) <- c("Count_pos_polity", "Count_neut_polity", "Count_neg_polity", "Mean_pos_polity", "Mean_neut_polity",  "Mean_neg_polity", "Median_pos_polity", "Median_neut_polity", "Median_neg_polity", "Mean_pos_length", "Mean_neut_length", "Mean_neg_length")
 
 
 
