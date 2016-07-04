@@ -89,6 +89,8 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
 #Transitions are NOT the same as revolutionary leaders
 dt_revo.trimmed[,transition_years:=(count_transition)]
 
+###NEED TO FIND A WAY TO EXCLUDE 1ST LEADERS IN DATA SET (SUCH AS HOXHA IN ALBANIA)###
+###THIS IS AN IMPORTANT TAG FOR ANALYSIS###
 #End of transition period? End of revolutionary transition?
 transition_end <- numeric()
 revo_end <- numeric()
@@ -96,8 +98,8 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
   if (is.na(dt_revo.trimmed$transition[i]) | is.na(dt_revo.trimmed$transition[max(i-1,1)])) {
     transition_end[i] <- NA
     revo_end[i] <- NA
-  } else if ( (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == TRUE) || 
-              (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == FALSE && dt_revo.trimmed$new_rev[i] == TRUE)) { ###THIS LINE IS INCORRECT & CATCHING TRANSITIONS & REVOS THAT SHOULDN"T BE THERE (SEE ALBANIA VS COLGAN)
+  } else if ( (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == TRUE)) { 
+              #(dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == FALSE && dt_revo.trimmed$new_rev[i] == TRUE)) { ###THIS LINE IS INCORRECT & CATCHING TRANSITIONS & REVOS THAT SHOULDN"T BE THERE (SEE ALBANIA VS COLGAN)
     transition_end[i] <- TRUE
       
       if ((dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) || (dt_revo.trimmed$revolutionaryleader[i] == 1)) {
@@ -229,6 +231,9 @@ multiple_country.ts <- ggplot(dt_revo.trimmed,aes(x=data_year,y=polity2,color=re
 ggplot(dt_revo.transition, aes(x = age0, y = either_polity_change, color = end_revo)) + geom_point()
 
 #####OUTPUTS#####
+###AGE CORRELATIONS ARE INCORRECT, AS THEY ARE PICKING UP CURRENT YEAR LEADER, RATHER THAN TRANSITION/REVO YEAR LEADER###
+
+
 
 #Revolutionary leaders with positive positive polity effect
 pos_polity_revleaders_tally <- dt_revo.transition$either_polity_change > 0 & dt_revo.transition$end_revo == 1
