@@ -80,11 +80,13 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
   if (is.na(dt_revo.trimmed$transition[i]) | is.na(dt_revo.trimmed$transition[max(i-1,1)])) {
     transition_end[i] <- NA
     revo_end[i] <- NA
-  } else if ( (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == TRUE)  ||
-              (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == FALSE && dt_revo.trimmed$new_rev[i] == TRUE)) { ###THIS LINE IS INCORRECT & CATCHING TRANSITIONS & REVOS THAT SHOULDN"T BE THERE (SEE ALBANIA VS COLGAN)
+  } else if ( (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == TRUE)) { 
     transition_end[i] <- TRUE
       
-      if ((dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) || (dt_revo.trimmed$revolutionaryleader[i] == 1)) {
+
+    if ((dt_revo.trimmed$revolutionaryleader[i] == 0) && (dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) ||
+          dt_revo.trimmed$revolutionaryleader[i] == 1 && dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1 && 
+          (dt_revo.trimmed$leader[i] != dt_revo.trimmed$leader[i+1])) {
         revo_end[i] <- TRUE
       } else {
         revo_end[i] <- FALSE
@@ -100,6 +102,7 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
 }
 
 #If post-transition leader is not same as transition/revo leader, who was transition/revo leader?
+###DOES NOT CAPTURE CORRECT REVO LEADER IF REVO HAPPENS IN UNDER 1 YEAR. SEE ALBANIA, ALIA/BERISHA###
 transition_leader <- character(length= length(dt_revo.trimmed$leader))
 revo_leader <- character(length= length(dt_revo.trimmed$leader))
 for (i in seq_along(revo_end)) {
