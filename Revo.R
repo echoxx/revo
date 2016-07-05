@@ -32,7 +32,7 @@ revo.trimmed <- select(revo, ccname, year, startdate, enddate, leader, age, age0
                        #Colgan's 2nd criterion - radical policy
                        ##chg_executivepower, chg_politicalideology, chg_nameofcountry, chg_propertyowernship, chg_womenandethnicstatus, chg_religioningovernment, chg_revolutionarycommittee, totalcategorieschanged, 
                        democ, autoc, polity2, polity, durable, democratizing)
-
+revo.trimmed <- revo.trimmed[order(revo.trimmed$ccname),]
 
 dt_revo.trimmed <- data.table(revo.trimmed)
 dt_revo.trimmed[,year_diff:=c(0,diff(year)),by=list(ccname)]
@@ -83,16 +83,20 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
   } else if ( (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == TRUE)) { 
     transition_end[i] <- TRUE
       
-
     if ((dt_revo.trimmed$revolutionaryleader[i] == 0) && (dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) ||
           dt_revo.trimmed$revolutionaryleader[i] == 1 && dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1 && 
-          (dt_revo.trimmed$leader[i] != dt_revo.trimmed$leader[i+1])) {
+          dt_revo.trimmed$leader[i] != dt_revo.trimmed$leader[max(i-1,1)] &&
+          dt_revo.trimmed$ccname[i] == dt_revo.trimmed$ccname[max(i-1,1)]) {
+        revo_end[i] <- TRUE
+      } else if ((dt_revo.trimmed$revolutionaryleader[i] == 1 && dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) &&
+                 (dt_revo.trimmed$leader[i] == dt_revo.trimmed$leader[max(i-1,1)])) {
         revo_end[i] <- TRUE
       } else {
         revo_end[i] <- FALSE
       }
     
-  } else if (dt_revo.trimmed$revolutionaryleader[i] == 0 && dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) {
+  } else if ((dt_revo.trimmed$revolutionaryleader[i] == 0 && dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) &&
+             dt_revo.trimmed$ccname[i] == dt_revo.trimmed$ccname[max(i-1,1)]) {
       revo_end[i] <- TRUE
       transition_end[i] <- FALSE
     } else {
@@ -100,34 +104,6 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
       revo_end[i] <- FALSE
     }
 }
-
-#If post-transition leader is not same as transition/revo leader, who was transition/revo leader?
-###DOES NOT CAPTURE CORRECT REVO LEADER IF REVO HAPPENS IN UNDER 1 YEAR. SEE ALBANIA, ALIA/BERISHA###
-transition_leader <- character(length= length(dt_revo.trimmed$leader))
-revo_leader <- character(length= length(dt_revo.trimmed$leader))
-for (i in seq_along(revo_end)) {
-  if (is.na(revo_end[i]) | is.na(transition_end[max(i-1,1)])) {
-    transition_leader[i] <- NA
-    revo_leader[i] <- NA
-  } else if (revo_end[i] == 1) {
-    revo_leader[i] <- dt_revo.trimmed$leader[max(i-1,1)]
-    transition_leader[i] <- dt_revo.trimmed$leader[max(i-1,1)]
-  } else if (transition_end[i] == 1) {
-    revo_leader[i] <- NA
-    transition_leader[i] <- dt_revo.trimmed$leader[max(i-1,1)]
-  } else {
-    revo_leader[i] <- NA
-    transition_leader[i] <- NA
-  }
-}
-
-dt_revo.trimmed[,leader_transition:= transition_leader]
-dt_revo.trimmed[,leader_revo:= revo_leader]
-dt_revo.trimmed[,end_transition:= transition_end]
-dt_revo.trimmed[,end_revo:= revo_end]
-
-
-
 
 #Calculate transition_polity_change and revo_polity_change columns
 polity_transition_change <- numeric(length = length(dt_revo.trimmed$polity2))
@@ -141,30 +117,61 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
     next()      ##IS THIS CORRECT?
   } else if (is.na(dt_revo.trimmed$transition[max(i-1,1)])) {
     next()
-    } else if (( (dt_revo.trimmed$transition[i] == FALSE) && (dt_revo.trimmed$transition[max(i-1,1)] == TRUE) )) {
-     if (dt_revo.trimmed$ccname[i] == dt_revo.trimmed$ccname[max(i-skip_back,1)]){    #checks if same country
-       skip_back <- (1 + dt_revo.trimmed$transition_years[i-1])
-       polity_pre[i] <- dt_revo.trimmed$polity2[max(i-skip_back,1)]
-       polity_transition_change[i] <- dt_revo.trimmed$polity2[i] - dt_revo.trimmed$polity2[max(i-skip_back,1)]
-     } else if (dt_revo.trimmed$ccname[i] != dt_revo.trimmed$ccname[max(i-1,1)]) {
-       skip_back <- 0
-       polity_pre[i] <- dt_revo.trimmed$polity2[i]
-       polity_transition_change[i] <- 0 
-     }
-     #Checks if transition is also a revolution
-     if (dt_revo.trimmed$revolutionaryleader[max(i-(skip_back - 1),1)] == 1) { #skip_back - 1 since skip_back would be year before revolution begins
-       polity_revo_change[i] <- polity_transition_change[i]
-     } else {
-       polity_revo_change[i] <- 0
-     }
-     
-     polity_post[i] <- dt_revo.trimmed$polity2[i]
-  
-     } else  {
-       polity_transition_change[i] <- 0
-     }
+  } else if (( (dt_revo.trimmed$transition[i] == FALSE) && (dt_revo.trimmed$transition[max(i-1,1)] == TRUE) )) {
+    skip_back <- (1 + dt_revo.trimmed$transition_years[max(i-1,1)])
+    if (dt_revo.trimmed$ccname[i] == dt_revo.trimmed$ccname[i-skip_back]) {    #checks if same country
+      polity_pre[i] <- dt_revo.trimmed$polity2[i-skip_back]
+      polity_transition_change[i] <- dt_revo.trimmed$polity2[i] - dt_revo.trimmed$polity2[max(i-skip_back,1)]
+    } else if (dt_revo.trimmed$ccname[i] != dt_revo.trimmed$ccname[max(i-1,1)]) {
+      skip_back <- 0
+      polity_pre[i] <- dt_revo.trimmed$polity2[i]
+      polity_transition_change[i] <- 0 
+    }
+    #Checks if transition is also a revolution
+    if (dt_revo.trimmed$revolutionaryleader[max(i-(skip_back - 1),1)] == 1) { #skip_back - 1 since skip_back would be year before revolution begins
+      polity_revo_change[i] <- polity_transition_change[i]
+    } else {
+      polity_revo_change[i] <- 0
+    }
+    
+    polity_post[i] <- dt_revo.trimmed$polity2[i]
+    
+  } else  {
+    polity_transition_change[i] <- 0
+  }
   #if(dt_revo.trimmed$leader[i] == "Hoxha") { print(c(i, skip_back, dt_revo.trimmed$polity2[i], dt_revo.trimmed$polity2[i-skip_back]))}
 }
+
+#If post-transition leader is not same as transition/revo leader, who was transition/revo leader?
+###DOES NOT CAPTURE CORRECT REVO LEADER IF REVO HAPPENS IN UNDER 1 YEAR. SEE ALBANIA, ALIA/BERISHA###
+transition_leader <- character(length= length(dt_revo.trimmed$leader))
+revo_leader <- character(length= length(dt_revo.trimmed$leader))
+rev_trans_leader_age0 <- character(length= length(dt_revo.trimmed$leader))
+for (i in seq_along(revo_end)) {
+  if (is.na(revo_end[i]) | is.na(transition_end[max(i-1,1)])) {
+    transition_leader[i] <- NA
+    revo_leader[i] <- NA
+  } else if (revo_end[i] == 1) {
+    revo_leader[i] <- dt_revo.trimmed$leader[max(i-1,1)]
+    transition_leader[i] <- dt_revo.trimmed$leader[max(i-1,1)]
+    rev_trans_leader_age0[i] <- dt_revo.trimmed$age0[i-1]
+  } else if (transition_end[i] == 1) {
+    revo_leader[i] <- NA
+    transition_leader[i] <- dt_revo.trimmed$leader[max(i-1,1)]
+    rev_trans_leader_age0[i] <- dt_revo.trimmed$age0[i-1]
+  } else {
+    revo_leader[i] <- NA
+    transition_leader[i] <- NA
+  }
+}
+
+dt_revo.trimmed[,leader_transition:= transition_leader]
+dt_revo.trimmed[,leader_revo:= revo_leader]
+dt_revo.trimmed[,revo_trans_leader_age0:= rev_trans_leader_age0]
+dt_revo.trimmed[,end_transition:= transition_end]
+dt_revo.trimmed[,end_revo:= revo_end]
+
+
 
 ##Checks revo_polity_change for revolutions that were not coded as transitions
 for (i in seq_along(dt_revo.trimmed$new_rev)) {
@@ -213,6 +220,11 @@ dt_revo.trimmed[,length_transition:=transition_years_counter]
 transition_index <- which(dt_revo.trimmed$end_transition == 1 | dt_revo.trimmed$end_revo == 1)
 dt_revo.transition <- dt_revo.trimmed[transition_index,]
 dt_revo.transition <- dt_revo.transition[order(dt_revo.transition$ccname),]
+dt_revo.transition <- select(dt_revo.transition, ccname, year, startdate, enddate, leader, leader_transition, leader_revo, revo_trans_leader_age0,
+                       polity2, end_transition, end_revo, polity_pre_change, polity_post_change, 
+                       transition_polity_change, revo_polity_change, either_polity_change, 
+                       length_transition)
+                  
 
 #####CHARTS#####
 prechange_eitherpolity_revleader <- ggplot(dt_revo.transition, aes(x = polity_pre_change, y = either_polity_change, color = end_revo)) + geom_point()
