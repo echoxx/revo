@@ -33,22 +33,6 @@ revo.trimmed <- select(revo, ccname, year, startdate, enddate, leader, age, age0
                        ##chg_executivepower, chg_politicalideology, chg_nameofcountry, chg_propertyowernship, chg_womenandethnicstatus, chg_religioningovernment, chg_revolutionarycommittee, totalcategorieschanged, 
                        democ, autoc, polity2, polity, durable, democratizing)
 
-#### NOTES TO DATASET ###
-#polity = democ - autoc
-
-#polity2 = adjustment of polity score to remove -88, -77, -66
-#-66 Cases of foreign “interruption” are treated as “system missing.”
-#-77 Cases of “interregnum,” or anarchy, are converted to a “neutral” Polity score of “0.”
-#-88 Cases of “transition” are prorated across the span of the transition. For example, country X 
-#has a POLITY score of -7 in 1957, followed by three years of -88 and, finally, a score of +5 in 1961. 
-#The change (+12) would be prorated over the intervening three years at a rate of per year, so that the 
-#converted scores would be as follows: 1957 -7; 1958 -4; 1959 -1; 1960 +2; and 1961 +5.
-
-#democratizing - variable created by Colgan. "a leader is coded as if the Polity store of his state increases 
-#by at least 5 points in the first five years of tenure". Colgan includes the column closer to Criterion 1 variables,
-#but democratizing does not influence RevolutionaryLeader
-
-###END NOTES###
 
 dt_revo.trimmed <- data.table(revo.trimmed)
 dt_revo.trimmed[,year_diff:=c(0,diff(year)),by=list(ccname)]
@@ -56,8 +40,6 @@ dt_revo.trimmed[,data_year:=seq_along(year),by=list(ccname)]
 #dt_revo.trimmed[,rev_diff:=c(0,diff(revolutionaryleader)),by=list(ccname)] ###This does not provide correct # of revolutions(77)###
 dt_revo.trimmed[,transition := polity < -10, by = ccname]
 
-
-##Way to not use a for loop?
 
 #If new revolution occurs in given year. Includes adjacent leaders that are both coded as revolutionary. All other years are coded 0.
 new_rev_vec <- numeric(length = (length(dt_revo.trimmed$transition)))
@@ -98,8 +80,8 @@ for (i in seq_along(dt_revo.trimmed$transition)) {
   if (is.na(dt_revo.trimmed$transition[i]) | is.na(dt_revo.trimmed$transition[max(i-1,1)])) {
     transition_end[i] <- NA
     revo_end[i] <- NA
-  } else if ( (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == TRUE)) { 
-              #(dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == FALSE && dt_revo.trimmed$new_rev[i] == TRUE)) { ###THIS LINE IS INCORRECT & CATCHING TRANSITIONS & REVOS THAT SHOULDN"T BE THERE (SEE ALBANIA VS COLGAN)
+  } else if ( (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == TRUE)  ||
+              (dt_revo.trimmed$transition[i] == FALSE && dt_revo.trimmed$transition[max(i-1,1)] == FALSE && dt_revo.trimmed$new_rev[i] == TRUE)) { ###THIS LINE IS INCORRECT & CATCHING TRANSITIONS & REVOS THAT SHOULDN"T BE THERE (SEE ALBANIA VS COLGAN)
     transition_end[i] <- TRUE
       
       if ((dt_revo.trimmed$revolutionaryleader[max(i-1,1)] == 1) || (dt_revo.trimmed$revolutionaryleader[i] == 1)) {
@@ -153,25 +135,32 @@ polity_post <- numeric(length = length(dt_revo.trimmed$polity2))
 for (i in seq_along(dt_revo.trimmed$transition)) {
   skip_back <- numeric()
   if (is.na(dt_revo.trimmed$transition[i])){
-    next()
+    next()      ##IS THIS CORRECT?
   } else if (is.na(dt_revo.trimmed$transition[max(i-1,1)])) {
     next()
     } else if (( (dt_revo.trimmed$transition[i] == FALSE) && (dt_revo.trimmed$transition[max(i-1,1)] == TRUE) )) {
-     skip_back <- (1 + dt_revo.trimmed$transition_years[i-1])
-     polity_transition_change[i] <- dt_revo.trimmed$polity2[i] - dt_revo.trimmed$polity2[i-skip_back]
-     
+     if (dt_revo.trimmed$ccname[i] == dt_revo.trimmed$ccname[max(i-skip_back,1)]){    #checks if same country
+       skip_back <- (1 + dt_revo.trimmed$transition_years[i-1])
+       polity_pre[i] <- dt_revo.trimmed$polity2[max(i-skip_back,1)]
+       polity_transition_change[i] <- dt_revo.trimmed$polity2[i] - dt_revo.trimmed$polity2[max(i-skip_back,1)]
+     } else if (dt_revo.trimmed$ccname[i] != dt_revo.trimmed$ccname[max(i-1,1)]) {
+       skip_back <- 0
+       polity_pre[i] <- dt_revo.trimmed$polity2[i]
+       polity_transition_change[i] <- 0 
+     }
      #Checks if transition is also a revolution
-     if (dt_revo.trimmed$revolutionaryleader[i-(skip_back - 1)] == 1) { #skip_back - 1 since skip_back would be year before revolution begins
+     if (dt_revo.trimmed$revolutionaryleader[max(i-(skip_back - 1),1)] == 1) { #skip_back - 1 since skip_back would be year before revolution begins
        polity_revo_change[i] <- polity_transition_change[i]
      } else {
        polity_revo_change[i] <- 0
      }
-     polity_pre[i] <- dt_revo.trimmed$polity2[i-skip_back]
+     
      polity_post[i] <- dt_revo.trimmed$polity2[i]
   
      } else  {
        polity_transition_change[i] <- 0
      }
+  #if(dt_revo.trimmed$leader[i] == "Hoxha") { print(c(i, skip_back, dt_revo.trimmed$polity2[i], dt_revo.trimmed$polity2[i-skip_back]))}
 }
 
 ##Checks revo_polity_change for revolutions that were not coded as transitions
@@ -365,6 +354,23 @@ democ_leaders_unique <- unique(democ_leaders)
 ###Democratizing - Frequency - Outputs
 democ_out_count <- length(democ_leaders_unique[,1])
 democ_out_countryyears <- length(democ_leaders[,1])
+
+#### NOTES TO DATASET ###
+#polity = democ - autoc
+
+#polity2 = adjustment of polity score to remove -88, -77, -66
+#-66 Cases of foreign “interruption” are treated as “system missing.”
+#-77 Cases of “interregnum,” or anarchy, are converted to a “neutral” Polity score of “0.”
+#-88 Cases of “transition” are prorated across the span of the transition. For example, country X 
+#has a POLITY score of -7 in 1957, followed by three years of -88 and, finally, a score of +5 in 1961. 
+#The change (+12) would be prorated over the intervening three years at a rate of per year, so that the 
+#converted scores would be as follows: 1957 -7; 1958 -4; 1959 -1; 1960 +2; and 1961 +5.
+
+#democratizing - variable created by Colgan. "a leader is coded as if the Polity store of his state increases 
+#by at least 5 points in the first five years of tenure". Colgan includes the column closer to Criterion 1 variables,
+#but democratizing does not influence RevolutionaryLeader
+
+###END NOTES###
 
 
 
