@@ -37,7 +37,6 @@ revo.trimmed <- revo.trimmed[order(revo.trimmed$ccname),]
 dt_revo.trimmed <- data.table(revo.trimmed)
 dt_revo.trimmed[,year_diff:=c(0,diff(year)),by=list(ccname)]
 dt_revo.trimmed[,data_year:=seq_along(year),by=list(ccname)] 
-#dt_revo.trimmed[,rev_diff:=c(0,diff(revolutionaryleader)),by=list(ccname)] ###This does not provide correct # of revolutions(77)###
 dt_revo.trimmed[,transition := polity < -10, by = ccname]
 
 
