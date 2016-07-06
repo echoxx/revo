@@ -40,15 +40,20 @@ all_countries[,polity_carryforward:=na.locf(polity_cens,na.rm=F),by=ccname]
 
 all_countries[, ':='(transition_length = 1L:.N), by = list(leader, transition)]
 all_countries[, transition_length:=ifelse(transition == F, 0, transition_length)]
+all_countries[,transition_start_end:=c(0,diff(transition))] #---> IS THIS STILL NECESSARY?
 
 prev_country_data <- all_countries[,list(ccname, year = year+1, last_leader = leader, last_revo = revolutionaryleader, 
                                          last_polity = polity_carryforward, 
                                          last_transition_length = transition_length)]
 all_countries = merge(all_countries, prev_country_data, by = c("ccname", "year"))
+all_countries <- all_countries[, list(ccname, year, leader, last_leader, revolutionaryleader, last_revo, 
+                                      polity, last_polity, 
+                                      transition, transition_length, last_transition_length, transition_start_end)]
 
+##NOW NEED TO DECIDE ON SELECTING OUT MECHANSIM TO ONLY TAKE TRANSITION OR REVOLUTIONARY LEADERS
 #View(all_countries[,list(ccname,year,leader,last_leader,revolutionaryleader,last_revo,polity,polity_cens,polity_carryforward,last_polity,transition_length)])
 
-#all_countries[,transition_start:=c(0,diff(transition))] ---> IS THIS STILL NECESSARY?
+
 #View(all_countries[,list(ccname, year, leader, revolutionaryleader, polity, transition, transition_start)])
 
 #test=all_countries[ccname=="Afghanistan"]
