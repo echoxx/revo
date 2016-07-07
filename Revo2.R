@@ -17,12 +17,6 @@ revo.trimmed <- select(revo, ccname, year, startdate, enddate, leader, age, age0
                        polity, polity2)
 revo.trimmed <- revo.trimmed[order(revo.trimmed$ccname),]                       
 
-##Other columns to consider
-#Revolutionary leader same as revolution government (per Colgan). 
-#RevolutionaryLeader coded if IrregularTransition=1, RadicalPolicy=1, FoundingLeader=0, ForeignInstalled=0
-#Colgan's 1st criterion - ambiguouscoding, irregulartransition, usedforce, foundingleader, foreigninstall, radicalideology
-#Colgan's 2nd criterion - chg_executivepower, chg_politicalideology, chg_nameofcountry, chg_propertyownership,chg_womenandethnicstatus, chg_religioningovernment, chg_revolutionarycommittee, totalcategorieschanged, 
-#democ, autoc, durable, democratizing
                                               
 
 
@@ -63,39 +57,58 @@ all_countries[,revo_start_end:=ifelse(revolutionaryleader == 1 & last_ccyear ==1
                                         
 
 #Creates previous countr dt (year+1) to merge, in order to have last year figures in same rows
-prev_country_data <- all_countries[,list(ccname, year = year+1, last_leader = leader, last_revo = revolutionaryleader, 
+prev_country_data <- all_countries[,list(ccname, year = year+1, data_year, last_leader = leader, last_revo = revolutionaryleader, 
                                          last_leader_age0 = age0,
                                          last_polity = polity_carryforward, 
                                          last_transition_length = transition_length)]
-all_countries2 = merge(all_countries, prev_country_data, by = c("ccname", "year"))
-all_countries2 <- all_countries2[, list(ccname, year, leader, last_leader, last_leader_age0,
+all_countries2 <- merge(all_countries, prev_country_data, by = c("ccname", "year"))
+all_countries2 <- all_countries2[, list(ccname, year, data_year = data_year.y, leader, last_leader, last_leader_age0,
                                       revolutionaryleader, last_revo, 
                                       polity, last_polity, 
-                                      transition, transition_length, last_transition_length, 
+                                      transition, last_transition_length, 
                                       revo_start_end, transition_start_end)]
 
 #Condense all_countries into DT with ONLY years following transitions or revolutions 
-index_na <- which ( all_countries[,is.na(revo_start_end) | is.na(transition_start_end)] )
+index_na <- which ( all_countries2[,is.na(revo_start_end) | is.na(transition_start_end)] )
 all_countries2$transition_start_end[index_na] <- 0 #Sets all NAs to 0 in transition tag
 
-index_tr <- which ( all_countries[,transition_start_end == -1 | revo_start_end == -1 | revo_start_end == 2] )
-tr_condensed <- data.table(all_countries[index_tr])
+index_tr <- which ( all_countries2[,transition_start_end == -1 | revo_start_end == 1 | revo_start_end == 2] )
+tr_condensed <- data.table(all_countries2[index_tr])
 
 tr_condensed <- tr_condensed[polity >= -10,]
 
-#View ( tr_condensed[revo_start_end == -1 | revo_start_end == 2,] )
+index_2to1 <- which (tr_condensed[,revo_start_end == 2]) #Changes 2s to 1 for plottingß
+tr_condensed$revo_start_end[index_2to1] <- 1
+
+index_0topt5 <- which (tr_condensed[,last_transition_length == 0])
+tr_condensed$last_transition_length[index_0topt5] <- 0.5 # sets arbitrary number below 1 for ggplot to show relative sizes
+
+tr_condensed[,polity_change:=polity - last_polity]
+
+#View(tr_condensed[revo_start_end == 1 | revo_start_end == 2])
+
+
+###CHARTS
+ggplot(tr_condensed, aes(x = last_polity, y = polity_change, color = revo_start_end, size = last_transition_length)) + geom_point()
 
 
 
-#test=all_countries[ccname=="Afghanistan"]
-#test[, ':='(transition_length = 1:.N), by = list(leader,transition)]
-#test[,transition_length:=ifelse(transition == FALSE, 0, transition_length)]
-#[ , `:=`( COUNT = .N , IDX = 1:.N ) , by = VAL ]
-#test[, transition_length:=ifelse(transition == TRUE, transition + shift(transition_length, 1L, type = "lag"),0) ]
-#http://stackoverflow.com/questions/19869145/counting-in-r-data-table
 
 
-#test[,polity_carryforward:=na.locf(polity_cens),by=ccname]
+
+
+
+##Other columns to consider
+#Revolutionary leader same as revolution government (per Colgan). 
+#RevolutionaryLeader coded if IrregularTransition=1, RadicalPolicy=1, FoundingLeader=0, ForeignInstalled=0
+#Colgan's 1st criterion - ambiguouscoding, irregulartransition, usedforce, foundingleader, foreigninstall, radicalideology
+#Colgan's 2nd criterion - chg_executivepower, chg_politicalideology, chg_nameofcountry, chg_propertyownership,chg_womenandethnicstatus, chg_religioningovernment, chg_revolutionarycommittee, totalcategorieschanged, 
+#democ, autoc, durable, democratizing
+
+
+
+
+
 #######
 
 
