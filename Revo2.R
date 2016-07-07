@@ -15,7 +15,7 @@ revo <- read_dta("Measuring Revolution.COLGAN.2012Nov.dta")
 revo.trimmed <- select(revo, ccname, year, startdate, enddate, leader, age, age0,
                        revolutionaryleader,
                        polity, polity2)
-                       
+revo.trimmed <- revo.trimmed[order(revo.trimmed$ccname),]                       
 
 ##Other columns to consider
 #Revolutionary leader same as revolution government (per Colgan). 
@@ -24,12 +24,17 @@ revo.trimmed <- select(revo, ccname, year, startdate, enddate, leader, age, age0
 #Colgan's 2nd criterion - chg_executivepower, chg_politicalideology, chg_nameofcountry, chg_propertyownership,chg_womenandethnicstatus, chg_religioningovernment, chg_revolutionarycommittee, totalcategorieschanged, 
 #democ, autoc, durable, democratizing
                                               
-revo.trimmed <- revo.trimmed[order(revo.trimmed$ccname),]
+
 
 dt_revo.trimmed <- data.table(revo.trimmed)
 dt_revo.trimmed[,transition := polity < -10, by = ccname]
 dt_revo.trimmed[,year_diff:=c(0,diff(year)),by=list(ccname)] #necessary?
 dt_revo.trimmed[,data_year:=seq_along(year),by=list(ccname)] #necessary?
+
+#Creates final year tag for last year of state years.
+dt_revo.trimmed[,last_ccyear:=ifelse( shift(year_diff, n = 1L, type = "lead") == 0, 1, 0) ]
+dt_revo.trimmed$last_ccyear[nrow(dt_revo.trimmed)] <- 1 #Otherwise, final value is NA since there is not leading row 
+
 
 ###Creates last_polity column using na.locf
 ###Side effect from split year+1 / merge technique: Strips out initial state year for all countries, 
@@ -40,21 +45,46 @@ all_countries[,polity_carryforward:=na.locf(polity_cens,na.rm=F),by=ccname]
 
 all_countries[, ':='(transition_length = 1L:.N), by = list(leader, transition)]
 all_countries[, transition_length:=ifelse(transition == F, 0, transition_length)]
-all_countries[,transition_start_end:=c(0,diff(transition))] #---> IS THIS STILL NECESSARY?
+all_countries[,transition_start_end:=c(0,diff(transition)), by = list(ccname)] #---> IS THIS STILL NECESSARY?
 
+#REVO_START_END KEY
+##IF ==1, revo start, if == -1 revo end. If == 2, end one revoleader & start another in same year
+
+#Triggers for general cases
+all_countries[,revo_start_end:=c(0,diff(revolutionaryleader)), by = list(ccname)]
+
+#Triggers for following event: two adjacent revolutionary leaders from same country. See: Burkina Faso, Sankara/Campaore
+all_countries[,revo_start_end:=ifelse(revolutionaryleader == shift(revolutionaryleader, n=1L, type = "lag") &
+                                        revolutionaryleader == 1 & 
+                                        leader != shift(leader, n=1L, type = "lag"),2,revo_start_end), by = ccname]
+
+#Triggers for final country year
+all_countries[,revo_start_end:=ifelse(revolutionaryleader == 1 & last_ccyear ==1,-1,revo_start_end)]
+                                        
+
+#Creates previous countr dt (year+1) to merge, in order to have last year figures in same rows
 prev_country_data <- all_countries[,list(ccname, year = year+1, last_leader = leader, last_revo = revolutionaryleader, 
+                                         last_leader_age0 = age0,
                                          last_polity = polity_carryforward, 
                                          last_transition_length = transition_length)]
 all_countries = merge(all_countries, prev_country_data, by = c("ccname", "year"))
-all_countries <- all_countries[, list(ccname, year, leader, last_leader, revolutionaryleader, last_revo, 
+all_countries <- all_countries[, list(ccname, year, leader, last_leader, last_leader_age0,
+                                      revolutionaryleader, last_revo, 
                                       polity, last_polity, 
-                                      transition, transition_length, last_transition_length, transition_start_end)]
+                                      transition, transition_length, last_transition_length, 
+                                      revo_start_end, transition_start_end)]
 
-##NOW NEED TO DECIDE ON SELECTING OUT MECHANSIM TO ONLY TAKE TRANSITION OR REVOLUTIONARY LEADERS
-#View(all_countries[,list(ccname,year,leader,last_leader,revolutionaryleader,last_revo,polity,polity_cens,polity_carryforward,last_polity,transition_length)])
+#Condense all_countries into DT with ONLY years following transitions or revolutions 
+index_na <- which ( all_countries[,is.na(revo_start_end) | is.na(transition_start_end)] )
+all_countries$transition_start_end[index_na] <- 0 #Sets all NAs to 0 in transition tag
+
+index_tr <- which ( all_countries[,transition_start_end == -1 | revo_start_end == -1 | revo_start_end == 2] )
+tr_condensed <- data.table(all_countries[index_tr])
 
 
-#View(all_countries[,list(ccname, year, leader, revolutionaryleader, polity, transition, transition_start)])
+View ( tr_condensed[last_revo == 1,] )
+
+
 
 #test=all_countries[ccname=="Afghanistan"]
 #test[, ':='(transition_length = 1:.N), by = list(leader,transition)]
