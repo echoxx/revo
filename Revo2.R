@@ -67,8 +67,8 @@ prev_country_data <- all_countries[,list(ccname, year = year+1, last_leader = le
                                          last_leader_age0 = age0,
                                          last_polity = polity_carryforward, 
                                          last_transition_length = transition_length)]
-all_countries = merge(all_countries, prev_country_data, by = c("ccname", "year"))
-all_countries <- all_countries[, list(ccname, year, leader, last_leader, last_leader_age0,
+all_countries2 = merge(all_countries, prev_country_data, by = c("ccname", "year"))
+all_countries2 <- all_countries2[, list(ccname, year, leader, last_leader, last_leader_age0,
                                       revolutionaryleader, last_revo, 
                                       polity, last_polity, 
                                       transition, transition_length, last_transition_length, 
@@ -76,13 +76,14 @@ all_countries <- all_countries[, list(ccname, year, leader, last_leader, last_le
 
 #Condense all_countries into DT with ONLY years following transitions or revolutions 
 index_na <- which ( all_countries[,is.na(revo_start_end) | is.na(transition_start_end)] )
-all_countries$transition_start_end[index_na] <- 0 #Sets all NAs to 0 in transition tag
+all_countries2$transition_start_end[index_na] <- 0 #Sets all NAs to 0 in transition tag
 
 index_tr <- which ( all_countries[,transition_start_end == -1 | revo_start_end == -1 | revo_start_end == 2] )
 tr_condensed <- data.table(all_countries[index_tr])
 
+tr_condensed <- tr_condensed[polity >= -10,]
 
-View ( tr_condensed[last_revo == 1,] )
+#View ( tr_condensed[revo_start_end == -1 | revo_start_end == 2,] )
 
 
 
