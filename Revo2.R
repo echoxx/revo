@@ -80,7 +80,7 @@ for(i in seq_along(test$ccname) ) {
   }
 }
 
-test[,pleasework:=tempcounter]
+test[,transition_start_count:=tempcounter]
 
 test[, transition_length:=(1L:.N), by = list(ccname, transition_start_count, transition)] #NEED THIS LINE AND ABOVE INE?
 test[transition == F, transition_length:= 0] #2nd command
