@@ -55,9 +55,55 @@ all_countries <- dt_revo.trimmed
 all_countries[,polity_cens:=ifelse(polity< -10, NA,polity)]
 all_countries[,polity_carryforward:=na.locf(polity_cens,na.rm=F),by=ccname]
 
-all_countries[, ':='(transition_length = 1L:.N), by = list(leader, transition)]
+#Only picks up transitions by leaders, not adjacent transitions by multiple leaders
+###ATTEMPT TO PICK UP ADJACENT LEADERS/TRANSITIONS
+all_countries[,transition_start_end:=c(0,diff(transition)), by = list(ccname)] #---> IS THIS STILL NECESSARY?
+all_countries[,transition_start_count:=1L:.N, by = list(ccname, transition, transition_start_end)]
+all_countries[, transition_length:=(1L:.N), by = list()]
+
+###TEST
+test <- all_countries2[c( "Afghanistan", "Cambodia")]
+
+test[,transition_start_count:=1L:.N, by = list(ccname, transition, transition_start_end)] #This works
+test[,transition_start_count:=ifelse(transition_start_end != 1, 0, transition_start_count)] #Tallys # of new transition starts
+
+tempcounter <- numeric(length(test$ccname))
+for(i in seq_along(test$ccname) ) {
+  if(test$transition_start_count[i] > 0 && test$transition[i] == T && test$transition_start_end[i] ==1 
+     && test$ccname[i] == test$ccname[i-1]) {
+    tempcounter[i] <- test$transition_start_count[i]
+  } else if (test$transition_start_count[i] == 0 && test$transition[i] == T && test$transition_start_end[i] == 0 
+             && test$ccname[i] == test$ccname[i-1]) {
+    tempcounter[i] <- tempcounter[i-1]
+  } else {
+    tempcounter[i] <- 0
+  }
+}
+
+test[,pleasework:=tempcounter]
+
+test[, transition_length:=(1L:.N), by = list(ccname, transition_start_count, transition)] #NEED THIS LINE AND ABOVE INE?
+test[transition == F, transition_length:= 0] #2nd command
+
+
+
+test_index <- which ( test[,transition_start_end == 1] )
+test[test_index[1]:test_index[2]-1,transition_start_count:=transition_start_count[test_index[1]]]
+test[test_index[1]:test_index[2], year]
+
+test[,transition_start_count[test_index[1]:(test_index[2]-1)]] #subsets correctly
+test$transition_start_count[test_index[1]:(test_index[2]-1)] <- test$transition_start_count[test_index[1]] # how to generalize?
+
+#test[, transition_start_count:=ifelse(transition_start_end == 1, (1L:.N), 0), by = list(transition_start_end)] 
+#test[, transition_length:=(1L:.N), by = list(leader, transition)] 
+###END TEST
+
+###OLD CODE
+all_countries[, ':='(transition_length = 1L:.N), by = list(leader, transition)] 
+
 all_countries[, transition_length:=ifelse(transition == F, 0, transition_length)]
 all_countries[,transition_start_end:=c(0,diff(transition)), by = list(ccname)] #---> IS THIS STILL NECESSARY?
+###END OLD CODE
 
 
 
@@ -103,8 +149,8 @@ all_countries2$revo_start_end[7360] <- 1
 ##  Only include years where revo starts or transition ends
 
 # Sets all NAs to 0 in transition tag
-index_na <- which ( all_countries2[,is.na(revo_start_end) | is.na(transition_start_end)] )
-all_countries2$transition_start_end[index_na] <- 0 
+#index_na <- which ( all_countries2[,is.na(revo_start_end) | is.na(transition_start_end)] )
+#all_countries2$transition_start_end[index_na] <- 0 
 
 # Selects all 1) end of transitions (-1), 2) start of revos(2) and 3) start/end of revos (2)
 index_tr <- which ( all_countries2[,transition_start_end == -1 | revo_start_end == 1 | revo_start_end == 2] )
