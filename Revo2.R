@@ -88,12 +88,20 @@ tr_condensed$last_transition_length[index_0topt5] <- 0.5 # sets arbitrary number
 
 tr_condensed[,polity_change:=polity - last_polity]
 
+
 ##Nonrevo transitions only
 nonrevotrans <- tr_condensed[revolutionaryleader == 0 & transition_start_end == -1]
+removeduplicates <- which(!duplicated(nonrevotrans$leader))
+nonrevotrans <- (nonrevotrans[removeduplicates,])
+nonrevotrans <- nonrevotrans[complete.cases(nonrevotrans),]
+
 ##Revos only 
 allrevos <- tr_condensed[revo_start_end == 1 | (transition_start_end == -1 & revolutionaryleader == 1)]
 removeduplicates <- which(!duplicated(allrevos$leader))
 allrevos <- allrevos[removeduplicates,]
+
+revotrans.clean <- full_join(nonrevotrans, allrevos)
+
 #View(tr_condensed[revo_start_end == 1 | (transition_start_end == -1 & revolutionaryleader == 1)])
 
 
