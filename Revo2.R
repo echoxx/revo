@@ -15,7 +15,7 @@ revo <- read_dta("Measuring Revolution.COLGAN.2012Nov.dta")
 revo.trimmed <- select(revo, ccname, year, startdate, enddate, leader, age, age0,
                        revolutionaryleader,
                        polity, polity2)
-revo.trimmed <- revo.trimmed[order(revo.trimmed$ccname),]                       
+revo.trimmed <- revo.trimmed[order(revo.trimmed$ccname, revo.trimmed$year),]                       
 
                                               
 
@@ -68,6 +68,9 @@ all_countries2 <- all_countries2[, list(ccname, year, data_year = data_year.y, l
                                       transition, last_transition_length, 
                                       revo_start_end, transition_start_end)]
 
+all_countries2$revo_start_end[7360] <- 1 #Hardcoding this since original dataset excludes year 1979 for
+                                        #Zimbabwe, which [messes up] merging process
+
 #Condense all_countries into DT with ONLY years following transitions or revolutions 
 index_na <- which ( all_countries2[,is.na(revo_start_end) | is.na(transition_start_end)] )
 all_countries2$transition_start_end[index_na] <- 0 #Sets all NAs to 0 in transition tag
@@ -85,7 +88,13 @@ tr_condensed$last_transition_length[index_0topt5] <- 0.5 # sets arbitrary number
 
 tr_condensed[,polity_change:=polity - last_polity]
 
-#View(tr_condensed[revo_start_end == 1 | revo_start_end == 2])
+##Nonrevo transitions only
+nonrevotrans <- tr_condensed[revolutionaryleader == 0 & transition_start_end == -1]
+##Revos only 
+allrevos <- tr_condensed[revo_start_end == 1 | (transition_start_end == -1 & revolutionaryleader == 1)]
+removeduplicates <- which(!duplicated(allrevos$leader))
+allrevos <- allrevos[removeduplicates,]
+#View(tr_condensed[revo_start_end == 1 | (transition_start_end == -1 & revolutionaryleader == 1)])
 
 
 ###CHARTS
@@ -109,7 +118,7 @@ ggplot(tr_condensed, aes(x = last_polity, y = polity_change, color = revo_start_
 
 
 
-#######
+#######Library#######
 
 
 #extract years that are both transition and revo leader
