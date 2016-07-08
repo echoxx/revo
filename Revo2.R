@@ -14,7 +14,7 @@ revo <- read_dta("Measuring Revolution.COLGAN.2012Nov.dta")
 
 revo.trimmed <- select(revo, ccname, year, startdate, enddate, leader, age, age0,
                        revolutionaryleader,
-                       polity, polity2)
+                       polity, polity2, durable)
 revo.trimmed <- revo.trimmed[order(revo.trimmed$ccname, revo.trimmed$year),]                       
 
                                               
@@ -64,7 +64,7 @@ prev_country_data <- all_countries[,list(ccname, year = year+1, data_year, last_
 all_countries2 <- merge(all_countries, prev_country_data, by = c("ccname", "year"))
 all_countries2 <- all_countries2[, list(ccname, year, data_year = data_year.y, leader, last_leader, last_leader_age0,
                                       revolutionaryleader, last_revo, 
-                                      polity, last_polity, 
+                                      polity, last_polity, durable
                                       transition, last_transition_length, 
                                       revo_start_end, transition_start_end)]
 
