@@ -143,7 +143,9 @@ allrevos <- allrevos[complete.cases(allrevos),]
 
 # Join & create clean DT
 revotrans.clean <- full_join(nonrevotrans, allrevos)
-
+revotrans.clean.trimmed <- select(revotrans.clean, ccname, year, leader, last_leader, revolutionaryleader,
+                                                 last_revo, polity, last_polity, polity_change,
+                                                 last_transition_length, revo_start_end, transition_start_end)
 
 
 #### SECTION 8: CHARTS ####
