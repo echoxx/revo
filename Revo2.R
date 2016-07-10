@@ -175,9 +175,27 @@ revotrans.clean.trimmed <- select(revotrans.clean, ccname, year, leader, last_le
 
 #### SECTION 8: CHARTS ####
 ggplot(revotrans.clean, aes(x = last_polity, y = polity_change, color = revolutionaryleader, size = last_transition_length)) + geom_point()
+ggplot(revotrans.clean, (aes(x = last_transition_length, y = polity_change, color = revolutionaryleader))) + geom_point()
+
+#Revos only
 ggplot(allrevos, aes(x = polity_change)) + geom_density()
+ggplot(allrevos, aes(x = last_transition_length)) + geom_density()
+ggplot(allrevos, aes(x = last_transition_length, y = polity_change)) + geom_point()
+
+#Nonrevos only
+ggplot(nonrevotrans, aes(x = polity_change)) + geom_density()
+ggplot(nonrevotrans, aes(x = last_transition_length)) + geom_density()
+ggplot(nonrevotrans, aes(x = last_transition_length, y = polity_change)) + geom_point()
+
+
 #ggplot(allrevos, aes(x = last_polity, y = polity_change)) + geom_smooth()
 #ggplot(allrevos, aes(x = polity_change, y = last_transition_length)) + geom_point()
 
 
 #### SECTION 9: OUTPUTS ####
+
+#Revolutionary leaders with positive positive polity effect
+rev_pospol_tally <- sum(allrevos$polity_change > 0)
+rev_pospol_mean <- allrevos[polity_change > 0, mean(polity_change)]
+rev_pospol_median <- allrevos[polity_change > 0, median(polity_change)]
+
