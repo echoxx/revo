@@ -176,8 +176,8 @@ revotrans.clean.trimmed <- select(revotrans.clean, ccname, year, leader, last_le
 #### SECTION 8: CHARTS ####
 ggplot(revotrans.clean, aes(x = last_polity, y = polity_change, color = revolutionaryleader, size = last_transition_length)) + geom_point()
 ggplot(allrevos, aes(x = polity_change)) + geom_density()
-ggplot(allrevos, aes(x = last_polity, y = polity_change)) + geom_smooth()
-ggplot(allrevos, aes(x = polity_change, y = last_transition_length)) + geom_point()
+#ggplot(allrevos, aes(x = last_polity, y = polity_change)) + geom_smooth()
+#ggplot(allrevos, aes(x = polity_change, y = last_transition_length)) + geom_point()
 
 
 #### SECTION 9: OUTPUTS ####
