@@ -188,13 +188,13 @@ tr_condensed[,autoc_change:=autoc - last_autoc]
 nonrevotrans <- tr_condensed[revolutionaryleader == 0 & transition_start_end == -1]
 removeduplicates <- which(!duplicated(nonrevotrans$leader))
 nonrevotrans <- (nonrevotrans[removeduplicates,])
-nonrevotrans <- nonrevotrans[complete.cases(nonrevotrans),]
+nonrevotrans <- nonrevotrans[!is.na(nonrevotrans$polity),] #changed
 
 # Revos only 
 allrevos <- tr_condensed[revo_start_end == 1 | (transition_start_end == -1 & revolutionaryleader == 1)]
 removeduplicates <- which(!duplicated(allrevos$leader))
 allrevos <- allrevos[removeduplicates,]
-allrevos <- allrevos[complete.cases(allrevos),]
+allrevos <- allrevos[!is.na(allrevos$polity),]
 
 # Join & create clean DT
 revotrans.clean <- full_join(nonrevotrans, allrevos)
