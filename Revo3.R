@@ -51,18 +51,28 @@ dt_revo.trimmed$last_ccyear[nrow(dt_revo.trimmed)] <- 1 #Otherwise, final value 
 
 
 #### SECTION 3: ADD POLITY CARRYFORWARD & TRANSITION START/END TAG COLUMNS ####
-##   Creates last_polity column using na.locf.
+##   Creates last_polity/democ/autoc column using na.locf.
 ##   Side effect from split year+1 / merge technique: Strips out initial state year for all countries, 
 ##     since need before & after data to calculate polity change 
 
 all_countries <- dt_revo.trimmed
-all_countries[,polity_cens:=ifelse(polity< -10, NA,polity)]
+
+#Create polity carryforward
+all_countries[,polity_cens:=ifelse(polity< -10, NA,polity)] #Polity ranges from -10 to +10
 all_countries[,polity_carryforward:=na.locf(polity_cens,na.rm=F),by=ccname]
 
-#Only picks up transitions by leaders, not adjacent transitions by multiple leaders
+#Create democ carryforward
+all_countries[,democ_cens:=ifelse(democ< 0, NA,democ)] #Democ ranges 0 to 10
+all_countries[,democ_carryforward:=na.locf(democ_cens,na.rm=F),by=ccname]
+
+#Create autoc carryforward
+all_countries[,autoc_cens:=ifelse(autoc < 0, NA,autoc)] #Democ ranges 0 to 10
+all_countries[,autoc_carryforward:=na.locf(autoc_cens,na.rm=F),by=ccname]
 
 
-###ATTEMPT TO PICK UP ADJACENT LEADERS/TRANSITIONS
+
+###Transitions - picks up adjacent leaders/transitions 
+##Total length of transition, not length of time by transition by leader
 all_countries[,transition_start_end:=c(0,diff(transition)), by = list(ccname)] #---> IS THIS STILL NECESSARY?
 all_countries[,transition_start_count:=1L:.N, by = list(ccname, transition, transition_start_end)]
 all_countries[,transition_start_count:=ifelse(transition_start_end != 1, 0, transition_start_count)]
@@ -113,7 +123,9 @@ all_countries[,revo_start_end:=ifelse(revolutionaryleader == 1 & last_ccyear ==1
 # Creates previous countr dt (year+1) to merge, in order to have last year figures in same rows
 prev_country_data <- all_countries[,list(ccname, year = year+1, data_year, last_leader = leader, 
                                          last_revo = revolutionaryleader, last_leader_age0 = age0,
-                                         last_polity = polity_carryforward,
+                                         last_polity = polity_carryforward, 
+                                         last_democ = democ_carryforward, 
+                                         last_autoc = autoc_carryforward,
                                          last_usedforce = usedforce, last_irregulartransition = irregulartransition,
                                          last_transition_length = transition_length)]
 all_countries2 <- merge(all_countries, prev_country_data, by = c("ccname", "year"))
@@ -122,7 +134,9 @@ all_countries2 <- all_countries2[, list(ccname, year, data_year = data_year.y, l
                                       last_leader, last_leader_age0,
                                       last_usedforce, last_irregulartransition,
                                       revolutionaryleader, last_revo,
-                                      polity, last_polity, democ, autoc,
+                                      polity, last_polity, 
+                                      democ, last_democ, 
+                                      autoc,last_autoc,
                                       chg_executivepower, chg_politicalideology, chg_nameofcountry, 
                                       chg_propertyowernship, chg_womenandethnicstatus, chg_religioningovernment,
                                       chg_revolutionarycommittee, totalcategorieschanged,
@@ -160,6 +174,10 @@ tr_condensed$last_transition_length[index_0topt5] <- 0.5
 
 # creates polity change column
 tr_condensed[,polity_change:=polity - last_polity]
+tr_condensed[,democ_change:=democ - last_democ]
+tr_condensed[,autoc_change:=autoc - last_autoc]
+
+
 
 
 
@@ -183,11 +201,19 @@ revotrans.clean <- full_join(nonrevotrans, allrevos)
 
 
 #### SECTION 8: CHARTS ####
+
+
+#Both revos & non revos
 ggplot(revotrans.clean, aes(x = last_polity, y = polity_change, color = revolutionaryleader, size = last_transition_length)) + geom_point()
 ggplot(revotrans.clean, (aes(x = last_transition_length, y = polity_change, color = revolutionaryleader))) + geom_point()
+ggplot(revotrans.clean,aes(x=usedforce,y=polity_change))+geom_point()
 
 #Revos only
-ggplot(allrevos, aes(x = last_polity, y = polity_change)) + geom_point()
+ggplot(allrevos,aes(x=usedforce,y=polity_change))+geom_point()
+#ggplot(allrevos, aes(x = chg_executivepower, y = polity_change)) + geom_count()
+#ggplot(allrevos, aes(x = chg_politicalideology, y = polity_change)) + geom_count()
+
+ggplot(allrevos, aes(x = polity_change, y = totalcategorieschanged)) + geom_point()
 ggplot(allrevos, aes(x = polity, y = polity_change)) + geom_point()
 ggplot(allrevos, aes(x = last_transition_length, y = polity_change)) + geom_point()
 
@@ -196,8 +222,13 @@ ggplot(allrevos, aes(x = polity)) + geom_density()
 ggplot(allrevos, aes(x = polity_change)) + geom_density()
 ggplot(allrevos, aes(x = last_transition_length)) + geom_density()
 
+#Revos - No clear relationship
+ggplot(allrevos, aes(x = last_polity, y = polity_change, color = totalcategorieschanged)) + geom_point()
+
 
 #Nonrevos only
+ggplot(nonrevotrans,aes(x=usedforce,y=polity_change))+geom_point()
+
 ggplot(nonrevotrans, aes(x = polity_change)) + geom_density()
 ggplot(nonrevotrans, aes(x = last_transition_length)) + geom_density()
 ggplot(nonrevotrans, aes(x = last_transition_length, y = polity_change)) + geom_point()
