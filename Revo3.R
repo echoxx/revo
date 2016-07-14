@@ -378,14 +378,79 @@ colnames(autoc_summary) <- c("Pos_autoc_tally", "Neut_autoc_tally", "Neg_autoc_t
                              "Pos_autoc_median_length", "Neut_autoc_median_length", "Neg_autoc_median_length") 
 
 
+#Colgan's Variable 1
+##REVOS
+revos_usedforce_total_count <- sum(allrevos$usedforce, na.rm = T)
+revos_noforce_total_count <- sum(allrevos$usedforce == 0, na.rm = T)
+revos_usedforce_total_mean <- allrevos[usedforce == 1, mean(polity_change, na.rm = T)]
+revos_noforce_total_mean <- allrevos[usedforce == 0, mean(polity_change, na.rm = T)]
+
+revos_usedforce_pospol_count <- allrevos[polity_change > 0, sum(usedforce, na.rm = T)]
+revos_noforce_pospol_count <- allrevos[polity_change >0, sum(!usedforce, na.rm = T) ]
+revos_usedforce_pospol_mean <- allrevos[polity_change > 0 & usedforce == 1, mean(polity_change, na.rm = T)]
+revos_noforce_pospol_mean <- allrevos[polity_change > 0 & usedforce == 0, mean(polity_change, na.rm = T)]
+
+revos_usedforce_neutpol_count <- allrevos[polity_change == 0, sum(usedforce, na.rm = T)]
+revos_noforce_neutpol_count <- allrevos[polity_change == 0, sum(!usedforce, na.rm = T)]
+revos_usedforce_neutpol_mean <- allrevos[polity_change == 0 & usedforce == 1, mean(polity_change, na.rm = T)]
+revos_noforce_neutpol_mean <- allrevos[polity_change == 0 & usedforce == 0, mean(polity_change, na.rm = T)]
+
+revos_usedforce_negpol_count <- allrevos[polity_change < 0, sum(usedforce, na.rm = T)]
+revos_noforce_negpol_count <- allrevos[polity_change < 0, sum(!usedforce, na.rm = T), ]
+revos_usedforce_negpol_mean <- allrevos[polity_change < 0 & usedforce == 1, mean(polity_change, na.rm = T)]
+revos_noforce_negpol_mean <- allrevos[polity_change < 0 & usedforce == 0, mean(polity_change, na.rm = T)]
+
+##NONREVOS
+trans_usedforce_total_count <- sum(nonrevotrans$usedforce, na.rm = T)
+trans_noforce_total_count <- sum(nonrevotrans$usedforce == 0, na.rm = T)
+trans_usedforce_total_mean <- nonrevotrans[usedforce == 1, mean(polity_change, na.rm = T)]
+trans_noforce_total_mean <- nonrevotrans[usedforce == 0, mean(polity_change, na.rm = T)]
+
+trans_usedforce_pospol_count <- nonrevotrans[polity_change > 0, sum(usedforce, na.rm = T)]
+trans_noforce_pospol_count <- nonrevotrans[polity_change > 0, sum(!usedforce, na.rm = T)]
+trans_usedforce_pospol_mean <- nonrevotrans[polity_change > 0 & usedforce == 1, mean(polity_change, na.rm = T)]
+trans_noforce_pospol_mean <- nonrevotrans[polity_change > 0 & usedforce == 0, mean(polity_change, na.rm = T)]
+
+trans_usedforce_neutpol_count <- nonrevotrans[polity_change == 0, sum(usedforce, na.rm = T)]
+trans_noforce_neutpol_count <- nonrevotrans[polity_change == 0, sum(!usedforce, na.rm = T)]
+trans_usedforce_neutpol_mean <- nonrevotrans[polity_change == 0 & usedforce == 1, mean(polity_change, na.rm = T)]
+trans_noforce_neutpol_mean <- nonrevotrans[polity_change == 0 & usedforce == 0, mean(polity_change, na.rm = T)]
+
+trans_usedforce_negpol_count <- nonrevotrans[polity_change < 0, sum(usedforce, na.rm = T)]
+trans_noforce_negpol_count <- nonrevotrans[polity_change < 0, sum(!usedforce, na.rm = T)]
+trans_usedforce_negpol_mean <- nonrevotrans[polity_change < 0 & usedforce == 1, mean(polity_change, na.rm = T)]
+trans_noforce_negpol_mean <- nonrevotrans[polity_change < 0 & usedforce == 0, mean(polity_change, na.rm = T)]
+
+
+usedforce_summary <- matrix(c(revos_usedforce_total_count, revos_noforce_total_count, revos_usedforce_total_mean, revos_noforce_total_mean,
+                              revos_usedforce_pospol_count, revos_noforce_pospol_count, revos_usedforce_pospol_mean, revos_noforce_pospol_mean,
+                              revos_usedforce_neutpol_count, revos_noforce_neutpol_count, revos_usedforce_neutpol_mean, revos_noforce_neutpol_mean,
+                              revos_usedforce_negpol_count, revos_noforce_negpol_count, revos_usedforce_negpol_mean, revos_noforce_negpol_mean,
+                              trans_usedforce_total_count, trans_noforce_total_count, trans_usedforce_total_mean, trans_noforce_total_mean,
+                              trans_usedforce_pospol_count, trans_noforce_pospol_count, trans_usedforce_pospol_mean, trans_noforce_pospol_mean,
+                              trans_usedforce_neutpol_count, trans_usedforce_neutpol_count, trans_usedforce_neutpol_mean, trans_noforce_neutpol_mean,
+                              trans_usedforce_negpol_count, trans_usedforce_negpol_count, trans_usedforce_negpol_mean, trans_noforce_negpol_mean), nrow = 2, ncol = 16, byrow = T)
+rownames(usedforce_summary) <- c("Revolutionary", "Non-Revolutionary")
+colnames(usedforce_summary) <- c("Usedforce_total_count", "Noforce_total_count", "Usedforce_total_mean", "Noforce_total_mean",
+                                 "Usedforce_pospol_count", "Noforce_pospol_count", "Usedforce_pospol_mean", "noforce_pospol_mean",
+                                 "Usedforce_neutpol_count", "Noforce_neutpol_count", "Usedforce_neutpol_mean", "Noforce_neutpol_mean",
+                                 "Usedforce_negpol_count", "Noforce_negpol_count", "Usedforce_negpol_mean", "Noforce_negpol_mean")
+                                 
+#Colgan's Variable 2
 
 #### SECTION 9: CHARTS ####
 
+###KEEP###
+ggplot(revotrans.clean, aes(x = last_polity, y = polity_change, color = revolutionaryleader, size = last_transition_length)) + geom_point()
+
+ggplot(revotrans.clean,aes(x=factor(usedforce),y=polity_change))+geom_boxplot()
+ggplot(allrevos,aes(x=factor(usedforce),y=polity_change))+geom_boxplot()
+ggplot(nonrevotrans,aes(x=factor(usedforce),y=polity_change))+geom_boxplot()
+
+ggplot(revotrans.clean,(aes(x = democ_change, y = autoc_change))) + geom_point() + geom_smooth(method = "lm")
 
 ##Both revos & non revos
 #Scatterplots
-ggplot(revotrans.clean, aes(x = last_polity, y = polity_change, color = revolutionaryleader, size = last_transition_length)) + geom_point()
-
 ggplot(revotrans.clean, aes(x = last_democ, y = last_autoc)) + geom_point()
 
 ggplot(revotrans.clean, aes(x = last_democ, y = democ_change, color = revolutionaryleader, size = last_transition_length)) + geom_point()
@@ -399,15 +464,65 @@ ggplot(revotrans.clean, aes(x = last_autoc, y = polity_change, color = revolutio
 
 ggplot(revotrans.clean, (aes(x = last_transition_length, y = polity_change, color = revolutionaryleader))) + geom_point()
 ggplot(revotrans.clean,aes(x=usedforce,y=polity_change))+geom_point()
-ggplot(allrevos,aes(x=usedforce,y=polity_change))+geom_point()
+ggplot(allrevos,aes(x=factor(usedforce),y=polity_change))+geom_point()
 ggplot(nonrevotrans,aes(x=usedforce,y=polity_change))+geom_point()
 
-ggplot(revotrans.clean,(aes(x = democ_change, y = autoc_change))) + geom_point()
+
 ggplot(revotrans.clean,(aes(x = democ_change, y = autoc_change))) + geom_smooth()
+
+#Subsets of revo criteria 1 & 2 according to Colgan
+allrevos_integers <- allrevos
+allrevos_integers$chg_politicalideology <- as.integer(allrevos$chg_politicalideology)
+allrevos_integers$chg_propertyowernship <- as.integer(allrevos$chg_propertyowernship)
+allrevos_integers$chg_womenandethnicstatus <- as.integer(allrevos$chg_womenandethnicstatus)
+allrevos_integers$chg_religioningovernment <- as.integer(allrevos$chg_religioningovernment)
+allrevos_integers$chg_revolutionarycommittee <- as.integer(allrevos$chg_revolutionarycommittee)
+
+allrevos_melt <- melt.data.table(allrevos_integers, id.vars = c("ccname", "polity", "last_polity", "polity_change", 
+                                            "democ", "last_democ", "democ_change", 
+                                            "autoc", "last_autoc", "autoc_change"), 
+                      measure.vars = c("chg_executivepower", "chg_politicalideology", "chg_nameofcountry", 
+                                            "chg_propertyowernship", "chg_womenandethnicstatus", "chg_religioningovernment", 
+                                            "chg_revolutionarycommittee"))
+
+names(allrevos_melt) <- c("ccname", "polity", "last_polity", "polity_change", "democ", "last_democ", "democ_change", 
+                          "autoc", "last_autoc", "autoc_change", "Criteria_2_sub", "Critera_2_sub_on/off")
+
+
+#Sub-variable 1: Executive Power
+cor(x = allrevos$polity_change, y = allrevos$chg_executivepower)
+ggplot(allrevos, aes(x = factor(chg_executivepower), y = polity_change)) + geom_point()
+ggplot(allrevos, aes(x = factor(chg_executivepower), y = polity_change)) + geom_boxplot()
+ggplot(allrevos, aes(x = polity_change)) + geom_density() + facet_wrap(~chg_executivepower)
+
+
+
+#Sub-variable 2: Political Ideology
+cor(x = allrevos$chg_politicalideology, y =  allrevos$polity_change, use = "complete.obs" )
+ggplot(allrevos, aes(x = chg_politicalideology, y = polity_change)) + geom_point()
+
+allrevos_chg_politicalideology_1 <- allrevos[chg_executivepower == 1]
+allrevos_chg_politicalideology_0 <- allrevos[chg_executivepower == 0]
+ggplot(allrevos_chg_politicalideology_1, aes(polity_change)) + geom_density() + ggtitle("Chg_politicalideology_1")
+ggplot(allrevos_chg_politicalideology_0, aes(polity_change)) + geom_density() + ggtitle("Chg_politicalideology_0")
+
+#Sub-variable 3: Property Ownership
+cor(x = allrevos$chg_propertyowernship, y = allrevos$polity_change)
+ggplot(allrevos, aes(x = chg_propertyowernship, y = polity_change)) + geom_count()
+
+allrevos_chg_propertyownership_1 <- allrevos[chg_propertyowernship == 1]
+allrevos_chg_propertyownership_0 <- allrevos[chg_propertyowernship == 0]
+ggplot(allrevos_chg_propertyownership_1, aes(x = polity_change)) + geom_density()
+ggplot(allrevos_chg_propertyownership_0, aes(x = polity_change)) + geom_density()
+
+
+ggplot(allrevos, aes(x = chg_nameofcountry, y = polity_change)) + geom_point()
+ggplot(allrevos, aes(x = chg_nameofcountry, y = polity_change)) + geom_smooth()
+
 
 
 ##Revos only
-ggplot(allrevos,aes(x=usedforce,y=polity_change))+geom_point()
+ggplot(allrevos,aes(x=usedforce,y=polity_change))+geom_count()
 #ggplot(allrevos, aes(x = chg_executivepower, y = polity_change)) + geom_count()
 #ggplot(allrevos, aes(x = chg_politicalideology, y = polity_change)) + geom_count()
 
