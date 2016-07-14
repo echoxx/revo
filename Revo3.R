@@ -191,13 +191,13 @@ nonrevotrans <- (nonrevotrans[removeduplicates,])
 nonrevotrans <- nonrevotrans[!is.na(nonrevotrans$polity & last_polity),] #changed
 
 # Revos only 
-allrevos <- tr_condensed[revo_start_end == 1 | (transition_start_end == -1 & revolutionaryleader == 1)]
+allrevos <- tr_condensed[revo_start_end == 1 | (transition_start_end == -1 & revolutionaryleader == 1)] ###Might only need 1 tag here###
 removeduplicates <- which(!duplicated(allrevos$leader))
 allrevos <- allrevos[removeduplicates,]
 allrevos <- allrevos[!is.na(allrevos$polity & last_polity),]
 
 # Join & create clean DT
-revotrans.clean <- full_join(nonrevotrans, allrevos)
+revotrans.clean <- data.table ( full_join(nonrevotrans, allrevos) )
 
 
 
@@ -442,12 +442,37 @@ colnames(usedforce_summary) <- c("Usedforce_total_count", "Noforce_total_count",
 
 ###KEEP###
 ggplot(revotrans.clean, aes(x = last_polity, y = polity_change, color = revolutionaryleader, size = last_transition_length)) + geom_point()
+ggplot(revotrans.clean, aes(x = factor(revolutionaryleader), y = polity_change)) + geom_boxplot()
 
 ggplot(revotrans.clean,aes(x=factor(usedforce),y=polity_change))+geom_boxplot()
 ggplot(allrevos,aes(x=factor(usedforce),y=polity_change))+geom_boxplot()
 ggplot(nonrevotrans,aes(x=factor(usedforce),y=polity_change))+geom_boxplot()
 
 ggplot(revotrans.clean,(aes(x = democ_change, y = autoc_change))) + geom_point() + geom_smooth(method = "lm")
+
+#Density plots of all Criteria2 subs
+ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_executivepower)
+ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_politicalideology)
+ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_nameofcountry)
+ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_propertyowernship)
+ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_womenandethnicstatus)
+
+#Scatter & boxplots of all Criteria2 subs
+ggplot(na.omit(allrevos), aes(x = factor(chg_executivepower), y = polity_change)) + geom_point() 
+ggplot(na.omit(allrevos), aes(x = factor(chg_executivepower), y = polity_change)) + geom_boxplot() 
+
+ggplot(na.omit(allrevos), aes(x = factor(chg_politicalideology), y = polity_change)) + geom_point() 
+ggplot(na.omit(allrevos), aes(x = factor(chg_politicalideology), y = polity_change)) + geom_boxplot()
+
+ggplot(na.omit(allrevos), aes(x = factor(chg_nameofcountry), y = polity_change)) + geom_point() 
+ggplot(na.omit(allrevos), aes(x = factor(chg_nameofcountry), y = polity_change)) + geom_boxplot() 
+
+ggplot(na.omit(allrevos), aes(x = factor(chg_propertyowernship), y = polity_change)) + geom_point() 
+ggplot(na.omit(allrevos), aes(x = factor(chg_propertyowernship), y = polity_change)) + geom_boxplot() 
+
+ggplot(na.omit(allrevos), aes(x = factor(chg_womenandethnicstatus), y = polity_change)) + geom_point() 
+ggplot(na.omit(allrevos), aes(x = factor(chg_womenandethnicstatus), y = polity_change)) + geom_boxplot() 
+
 
 ##Both revos & non revos
 #Scatterplots
@@ -486,19 +511,24 @@ allrevos_melt <- melt.data.table(allrevos_integers, id.vars = c("ccname", "polit
                                             "chg_revolutionarycommittee"))
 
 names(allrevos_melt) <- c("ccname", "polity", "last_polity", "polity_change", "democ", "last_democ", "democ_change", 
-                          "autoc", "last_autoc", "autoc_change", "Criteria_2_sub", "Critera_2_sub_on/off")
+                          "autoc", "last_autoc", "autoc_change", "Criteria_2sub", "Criteria_2sub_onoff")
 
+ggplot(na.omit(allrevos_melt), aes(x = factor(Criteria_2sub_onoff), y = polity_change)) + geom_boxplot() + facet_wrap(~Criteria_2sub)
+ggplot(na.omit(allrevos_melt), aes(x = Criteria_2sub, y = polity_change, fill = interaction(Criteria_2sub, Criteria_2sub_onoff))) + 
+  geom_boxplot()
 
 #Sub-variable 1: Executive Power
 cor(x = allrevos$polity_change, y = allrevos$chg_executivepower)
+
+
 ggplot(allrevos, aes(x = factor(chg_executivepower), y = polity_change)) + geom_point()
 ggplot(allrevos, aes(x = factor(chg_executivepower), y = polity_change)) + geom_boxplot()
-ggplot(allrevos, aes(x = polity_change)) + geom_density() + facet_wrap(~chg_executivepower)
-
 
 
 #Sub-variable 2: Political Ideology
 cor(x = allrevos$chg_politicalideology, y =  allrevos$polity_change, use = "complete.obs" )
+
+
 ggplot(allrevos, aes(x = chg_politicalideology, y = polity_change)) + geom_point()
 
 allrevos_chg_politicalideology_1 <- allrevos[chg_executivepower == 1]
