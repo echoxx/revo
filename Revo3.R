@@ -458,11 +458,11 @@ ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(
 ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_womenandethnicstatus)
 
 #Scatter & boxplots of all Criteria2 subs
-ggplot(na.omit(allrevos), aes(x = factor(chg_executivepower), y = polity_change)) + geom_point() 
+ggplot(na.omit(allrevos), aes(x = factor(chg_executivepower), y = polity_change)) + geom_count() 
 ggplot(na.omit(allrevos), aes(x = factor(chg_executivepower), y = polity_change)) + geom_boxplot()
 cor.test(allrevos$polity_change, allrevos$chg_executivepower)
 
-ggplot(na.omit(allrevos), aes(x = factor(chg_politicalideology), y = polity_change)) + geom_point() 
+ggplot(na.omit(allrevos), aes(x = factor(chg_politicalideology), y = polity_change)) + geom_count() 
 ggplot(na.omit(allrevos), aes(x = factor(chg_politicalideology), y = polity_change)) + geom_boxplot()
 cor.test(allrevos$polity_change, allrevos$chg_politicalideology)
 
@@ -535,49 +535,14 @@ ggplot(na.omit(allrevos_melt), aes(x = factor(Criteria_2sub_onoff), y = polity_c
 ggplot(na.omit(allrevos_melt), aes(x = Criteria_2sub, y = polity_change, fill = interaction(Criteria_2sub, Criteria_2sub_onoff))) + 
   geom_boxplot()
 
-#Sub-variable 1: Executive Power
-cor.test(x = allrevos$polity_change, y = allrevos$chg_executivepower)
 
-
-ggplot(allrevos, aes(x = factor(chg_executivepower), y = polity_change)) + geom_point()
-ggplot(allrevos, aes(x = factor(chg_executivepower), y = polity_change)) + geom_boxplot()
-
-
-#Sub-variable 2: Political Ideology
-cor(x = allrevos$chg_politicalideology, y =  allrevos$polity_change, use = "complete.obs" )
-
-
-ggplot(allrevos, aes(x = chg_politicalideology, y = polity_change)) + geom_point()
-
-allrevos_chg_politicalideology_1 <- allrevos[chg_executivepower == 1]
-allrevos_chg_politicalideology_0 <- allrevos[chg_executivepower == 0]
-ggplot(allrevos_chg_politicalideology_1, aes(polity_change)) + geom_density() + ggtitle("Chg_politicalideology_1")
-ggplot(allrevos_chg_politicalideology_0, aes(polity_change)) + geom_density() + ggtitle("Chg_politicalideology_0")
-
-#Sub-variable 3: Property Ownership
-cor(x = allrevos$chg_propertyowernship, y = allrevos$polity_change)
-ggplot(allrevos, aes(x = chg_propertyowernship, y = polity_change)) + geom_count()
-
-allrevos_chg_propertyownership_1 <- allrevos[chg_propertyowernship == 1]
-allrevos_chg_propertyownership_0 <- allrevos[chg_propertyowernship == 0]
-ggplot(allrevos_chg_propertyownership_1, aes(x = polity_change)) + geom_density()
-ggplot(allrevos_chg_propertyownership_0, aes(x = polity_change)) + geom_density()
-
-
-ggplot(allrevos, aes(x = chg_nameofcountry, y = polity_change)) + geom_point()
-ggplot(allrevos, aes(x = chg_nameofcountry, y = polity_change)) + geom_smooth()
 
 
 
 ##Revos only
-ggplot(allrevos,aes(x=usedforce,y=polity_change))+geom_count()
-#ggplot(allrevos, aes(x = chg_executivepower, y = polity_change)) + geom_count()
-#ggplot(allrevos, aes(x = chg_politicalideology, y = polity_change)) + geom_count()
 
 #Revos - Scatterplots
-ggplot(allrevos, aes(x = polity_change, y = totalcategorieschanged)) + geom_point()
-ggplot(allrevos, aes(x = polity, y = polity_change)) + geom_point()
-ggplot(allrevos, aes(x = last_transition_length, y = polity_change)) + geom_point()
+ggplot(allrevos, aes(x = totalcategorieschanged, y = polity_change)) + geom_count()
 
 #Revos - Density plots
 ggplot(allrevos, aes(x = last_polity)) + geom_density()
