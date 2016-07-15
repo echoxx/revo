@@ -436,17 +436,109 @@ colnames(usedforce_summary) <- c("Usedforce_total_count", "Noforce_total_count",
                                  "Usedforce_neutpol_count", "Noforce_neutpol_count", "Usedforce_neutpol_mean", "Noforce_neutpol_mean",
                                  "Usedforce_negpol_count", "Noforce_negpol_count", "Usedforce_negpol_mean", "Noforce_negpol_mean")
                                  
-#Colgan's Variable 2
 
-#### SECTION 9: CHARTS ####
 
-###KEEP###
-ggplot(revotrans.clean, aes(x = last_polity, y = polity_change, color = revolutionaryleader, size = last_transition_length)) + geom_point()
+#### SECTION 9: STATISTICAL TESTS ####
+#Polity, democ, autoc, revo vs nonrevo
+all_ttest_polity_change <- t.test(polity_change ~ revolutionaryleader, revotrans.clean)
+all_wtest_polity_change <- wilcox.test(polity_change ~ revolutionaryleader, revotrans.clean)
+
+all_ttest_democ_change <- t.test(democ_change ~ revolutionaryleader, revotrans.clean)
+all_wtest_democ_change <- wilcox.test(democ_change ~ revolutionaryleader, revotrans.clean)
+
+all_ttest_autoc_change <- t.test(democ_change ~ revolutionaryleader, revotrans.clean)
+all_wtest_autoc_change <- wilcox.test(democ_change ~ revolutionaryleader, revotrans.clean)
+
+#Usedforce, all, within revo, within nonrevo
+all_ttest_polity_usedforce <- t.test(polity_change ~ usedforce, revotrans.clean) 
+all_wtest_polity_usedforce <- wilcox.test(polity_change ~ usedforce, revotrans.clean) 
+
+revo_ttest_polity_usedforce <- t.test(polity_change ~ usedforce, allrevos) 
+revo_wtest_polity_usedforce <- wilcox.test(polity_change ~ usedforce, allrevos)
+
+nonrevo_ttest_polity_usedforce <- t.test(polity_change ~ usedforce, nonrevotrans)
+nonrevo_wtest_polity_usedforce <- wilcox.test(polity_change ~ usedforce, nonrevotrans) ###"Cannot compute exact p-value with ties"###
+
+
+#### SECTION 10: CHARTS ####
+
+####KEEP####
+
+#Boxplot comparisons btwn revo & nonrevo
 ggplot(revotrans.clean, aes(x = factor(revolutionaryleader), y = polity_change)) + geom_boxplot()
+ggplot(revotrans.clean, aes(x = factor(revolutionaryleader), y = democ_change)) + geom_boxplot()
+ggplot(revotrans.clean, aes(x = factor(revolutionaryleader), y = autoc_change)) + geom_boxplot()
 
+
+#Density Plot comparisons btwn revo & nonrevo
+##Polity, Democ, Autoc change
+ggplot(allrevos, aes(x = polity_change)) + geom_density()
+ggplot(allrevos, aes(x = democ_change)) + geom_density()
+ggplot(allrevos, aes(x = autoc_change)) + geom_density()
+
+ggplot(nonrevotrans, aes(x = polity_change)) + geom_density()
+ggplot(nonrevotrans, aes(x = democ_change)) + geom_density()
+ggplot(nonrevotrans, aes(x = autoc_change)) + geom_density()
+
+
+##Polity, democ, and autoc before & after scores
+ggplot(allrevos, aes(x = last_polity)) + geom_density()
+ggplot(allrevos, aes(x = polity)) + geom_density()
+ggplot(nonrevotrans, aes(x = last_polity)) + geom_density()
+ggplot(nonrevotrans, aes(x = polity)) + geom_density()
+
+ggplot(allrevos, aes(x = last_democ)) + geom_density()
+ggplot(allrevos, aes(x = democ)) + geom_density()
+ggplot(nonrevotrans, aes(x = last_democ)) + geom_density()
+ggplot(nonrevotrans, aes(x = democ)) + geom_density()
+
+ggplot(allrevos, aes(x = last_autoc)) + geom_density()
+ggplot(allrevos, aes(x = autoc)) + geom_density()
+ggplot(nonrevotrans, aes(x = last_autoc)) + geom_density()
+ggplot(nonrevotrans, aes(x = autoc)) + geom_density()
+
+
+#Criteria 1 - Usedforce
 ggplot(revotrans.clean,aes(x=factor(usedforce),y=polity_change))+geom_boxplot()
 ggplot(allrevos,aes(x=factor(usedforce),y=polity_change))+geom_boxplot()
 ggplot(nonrevotrans,aes(x=factor(usedforce),y=polity_change))+geom_boxplot()
+
+ggplot(revotrans.clean,aes(x=factor(usedforce),y=polity_change))+geom_count()
+ggplot(allrevos,aes(x=factor(usedforce),y=polity_change))+geom_count()
+ggplot(nonrevotrans,aes(x=factor(usedforce),y=polity_change))+geom_count()
+
+
+##Criteria 2 - Totalcategorieschanged
+ggplot(allrevos, aes(x = factor(totalcategorieschanged), y = polity_change)) + geom_boxplot()
+ggplot(allrevos, aes(x = factor(totalcategorieschanged), y = democ_change)) + geom_boxplot()
+ggplot(allrevos, aes(x = factor(totalcategorieschanged), y = autoc_change)) + geom_boxplot()
+
+
+
+####END KEEP####
+
+
+
+
+#Transition length
+ggplot(allrevos, aes(x = last_transition_length)) + geom_density()
+
+#Nonrevos only
+ggplot(nonrevotrans,aes(x=usedforce,y=polity_change))+geom_point()
+
+
+ggplot(nonrevotrans, aes(x = last_transition_length)) + geom_density()
+ggplot(nonrevotrans, aes(x = last_transition_length, y = polity_change)) + geom_point()
+
+ggplot(nonrevotrans, aes(x = last_polity)) + geom_density()
+ggplot(nonrevotrans, aes(x = polity)) + geom_density()
+ggplot(nonrevotrans, aes(x = polity_change)) + geom_density()
+ggplot(nonrevotrans, aes(x = last_transition_length)) + geom_density()
+
+ggplot(revotrans.clean, aes(x = last_polity, y = polity_change, color = revolutionaryleader, size = last_transition_length)) + geom_point()
+ggplot(revotrans.clean, aes(x = factor(revolutionaryleader), y = polity_change)) + geom_boxplot()
+
+
 
 ggplot(revotrans.clean,(aes(x = democ_change, y = autoc_change))) + geom_point() + geom_smooth(method = "lm")
 
@@ -456,23 +548,35 @@ ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(
 ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_nameofcountry)
 ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_propertyowernship)
 ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_womenandethnicstatus)
+ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_religioningovernment)
+ggplot(na.omit(allrevos), aes(x = polity_change)) + geom_density() + facet_wrap(~chg_revolutionarycommittee)
 
 #Scatter & boxplots of all Criteria2 subs
 ggplot(na.omit(allrevos), aes(x = factor(chg_executivepower), y = polity_change)) + geom_count() 
 ggplot(na.omit(allrevos), aes(x = factor(chg_executivepower), y = polity_change)) + geom_boxplot()
 cor.test(allrevos$polity_change, allrevos$chg_executivepower)
+t.test(polity_change ~ chg_executivepower, allrevos)
+wilcox.test(polity_change ~ chg_executivepower, allrevos)
 
 ggplot(na.omit(allrevos), aes(x = factor(chg_politicalideology), y = polity_change)) + geom_count() 
 ggplot(na.omit(allrevos), aes(x = factor(chg_politicalideology), y = polity_change)) + geom_boxplot()
 cor.test(allrevos$polity_change, allrevos$chg_politicalideology)
+t.test(polity_change ~ chg_politicalideology, allrevos)
+wilcox.test(polity_change ~ chg_politicalideology, allrevos)
+
 
 ggplot(na.omit(allrevos), aes(x = factor(chg_nameofcountry), y = polity_change)) + geom_point() 
 ggplot(na.omit(allrevos), aes(x = factor(chg_nameofcountry), y = polity_change)) + geom_boxplot()
 cor.test(allrevos$polity_change, allrevos$chg_nameofcountry)
+t.test(polity_change ~ chg_nameofcountry, allrevos)
+wilcox.test(polity_change ~ chg_nameofcountry, allrevos)
+
 
 ggplot(na.omit(allrevos), aes(x = factor(chg_propertyowernship), y = polity_change)) + geom_point() 
 ggplot(na.omit(allrevos), aes(x = factor(chg_propertyowernship), y = polity_change)) + geom_boxplot() 
 cor.test(allrevos$polity_change, allrevos$chg_propertyowernship)
+
+
 
 ggplot(na.omit(allrevos), aes(x = factor(chg_womenandethnicstatus), y = polity_change)) + geom_point() 
 ggplot(na.omit(allrevos), aes(x = factor(chg_womenandethnicstatus), y = polity_change)) + geom_boxplot() 
@@ -544,39 +648,11 @@ ggplot(na.omit(allrevos_melt), aes(x = Criteria_2sub, y = polity_change, fill = 
 #Revos - Scatterplots
 ggplot(allrevos, aes(x = totalcategorieschanged, y = polity_change)) + geom_count()
 
-#Revos - Density plots
-ggplot(allrevos, aes(x = last_polity)) + geom_density()
-ggplot(allrevos, aes(x = polity)) + geom_density()
-
-ggplot(allrevos, aes(x = last_democ)) + geom_density()
-ggplot(allrevos, aes(x = democ)) + geom_density()
-
-ggplot(allrevos, aes(x = last_autoc)) + geom_density()
-ggplot(allrevos, aes(x = autoc)) + geom_density()
-
-ggplot(allrevos, aes(x = polity_change)) + geom_density()
-ggplot(allrevos, aes(x = democ_change)) + geom_density()
-ggplot(allrevos, aes(x = autoc_change)) + geom_density()
-
-#Transition length
-ggplot(allrevos, aes(x = last_transition_length)) + geom_density()
 
 
-#Revos - No clear relationship
-ggplot(allrevos, aes(x = last_polity, y = polity_change, color = totalcategorieschanged)) + geom_point()
 
 
-#Nonrevos only
-ggplot(nonrevotrans,aes(x=usedforce,y=polity_change))+geom_point()
 
-ggplot(nonrevotrans, aes(x = polity_change)) + geom_density()
-ggplot(nonrevotrans, aes(x = last_transition_length)) + geom_density()
-ggplot(nonrevotrans, aes(x = last_transition_length, y = polity_change)) + geom_point()
-
-ggplot(nonrevotrans, aes(x = last_polity)) + geom_density()
-ggplot(nonrevotrans, aes(x = polity)) + geom_density()
-ggplot(nonrevotrans, aes(x = polity_change)) + geom_density()
-ggplot(nonrevotrans, aes(x = last_transition_length)) + geom_density()
 
 
 #ggplot(allrevos, aes(x = last_polity, y = polity_change)) + geom_smooth()
