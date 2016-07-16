@@ -449,7 +449,7 @@ total_categories_5 <- tally(allrevos[totalcategorieschanged == 5])
 total_categories_5.5 <- tally(allrevos[totalcategorieschanged == 5.5])
 total_categories_6 <- tally(allrevos[totalcategorieschanged == 6])
 total_categories_6.5 <- tally(allrevos[totalcategorieschanged == 6.5])
-total_categories_.7 <- tally(allrevos[totalcategorieschanged == 7])
+total_categories_7 <- tally(allrevos[totalcategorieschanged == 7])
 
 #1. chg_executivepower
 all_executivepower_1 <- tally(revotrans.clean[chg_executivepower == 1])
@@ -511,37 +511,114 @@ nonrevo_nameofcountry_wtest <- wilcox.test(polity_change ~ chg_nameofcountry, no
 
 
 #4. chg_propertyowernship
-revo_propertyowernship_1 <- tally(allrevos[chg_propertyowernship == 1])
-revo_propertyowernship_0 <- tally(allrevos[chg_propertyowernship == 0])
+all_property_1 <- tally(revotrans.clean[chg_propertyowernship == 1])
+all_property_0 <- tally(revotrans.clean[chg_propertyowernship == 0])
+all_property_ctest <- cor.test(revotrans.clean$polity_change, revotrans.clean$chg_propertyowernship)
+all_property_ttest <- t.test(polity_change ~ chg_propertyowernship, revotrans.clean[chg_propertyowernship == 1 | chg_propertyowernship == 0])
+all_property_wtest <- wilcox.test(polity_change ~ chg_propertyowernship, revotrans.clean[chg_propertyowernship == 1 | chg_propertyowernship == 0])
+
+revo_property_1 <- tally(allrevos[chg_propertyowernship == 1])
+revo_property_0 <- tally(allrevos[chg_propertyowernship == 0])
 revo_property_ctest <- cor.test(allrevos$polity_change, allrevos$chg_propertyowernship)
 revo_property_ttest <- t.test(polity_change ~ chg_propertyowernship, allrevos[chg_propertyowernship == 1 | chg_propertyowernship == 0])
 revo_property_wtest <- wilcox.test(polity_change ~ chg_propertyowernship, allrevos[chg_propertyowernship == 1 | chg_propertyowernship == 0])
 
-
-nonrevo_propertyowernship_1 <- tally(nonrevotrans[chg_propertyowernship == 1])
-nonrevo_propertyowernship_0 <- tally(nonrevotrans[chg_propertyowernship == 0])
+nonrevo_property_1 <- tally(nonrevotrans[chg_propertyowernship == 1])
+nonrevo_property_0 <- tally(nonrevotrans[chg_propertyowernship == 0])
+nonrevo_property_ctest <- cor.test(nonrevotrans$polity_change, nonrevotrans$chg_propertyowernship)
+nonrevo_property_ttest <- t.test(polity_change ~ chg_propertyowernship, nonrevotrans[chg_propertyowernship == 1 | chg_propertyowernship == 0])
+nonrevo_property_wtest <- wilcox.test(polity_change ~ chg_propertyowernship, nonrevotrans[chg_propertyowernship == 1 | chg_propertyowernship == 0])
 
 #5. chg_womenandethnicstatus
-revo_womenandethnicstatus_1 <- tally(allrevos[chg_womenandethnicstatus == 1])
-revo_womenandethnicstatus_0 <- tally(allrevos[chg_womenandethnicstatus == 0])
-nonrevo_womenandethnicstatus_1 <- tally(nonrevotrans[chg_womenandethnicstatus == 1])
-nonrevo_womenandethnicstatus_0 <- tally(nonrevotrans[chg_womenandethnicstatus == 0])
+all_womenandethnic_1 <- tally(revotrans.clean[chg_womenandethnicstatus == 1])
+all_womenandethnic_0 <- tally(revotrans.clean[chg_womenandethnicstatus == 0])
+all_womenandethnic_ctest <- cor.test(revotrans.clean$polity_change, revotrans.clean$chg_womenandethnicstatus)
+all_womenandethnic_ttest <- t.test(polity_change ~ chg_womenandethnicstatus, revotrans.clean[chg_womenandethnicstatus == 1 | chg_womenandethnicstatus == 0])
+all_womenandethnic_wtest <- wilcox.test(polity_change ~ chg_womenandethnicstatus, revotrans.clean[chg_womenandethnicstatus == 1 | chg_womenandethnicstatus == 0])
+
+revo_womenandethnic_1 <- tally(allrevos[chg_womenandethnicstatus == 1])
+revo_womenandethnic_0 <- tally(allrevos[chg_womenandethnicstatus == 0])
+revo_womenandethnic_ctest <- cor.test(allrevos$polity_change, allrevos$chg_womenandethnicstatus)
+revo_womenandethnic_ttest <- t.test(polity_change ~ chg_womenandethnicstatus, allrevos[chg_womenandethnicstatus == 1 | chg_womenandethnicstatus == 0])
+revo_womenandethnic_wtest <- wilcox.test(polity_change ~ chg_womenandethnicstatus, allrevos[chg_womenandethnicstatus == 1 | chg_womenandethnicstatus == 0])
+
+nonrevo_womenandethnic_1 <- tally(nonrevotrans[chg_womenandethnicstatus == 1])
+nonrevo_womenandethnic_0 <- tally(nonrevotrans[chg_womenandethnicstatus == 0])
+nonrevo_womenandethnic_ctest <- cor.test(nonrevotrans$polity_change, nonrevotrans$chg_womenandethnicstatus)
+nonrevo_womenandethnic_ttest <- t.test(polity_change ~ chg_womenandethnicstatus, nonrevotrans[chg_womenandethnicstatus == 1 | chg_womenandethnicstatus == 0])
+nonrevo_womenandethnic_wtest <- wilcox.test(polity_change ~ chg_womenandethnicstatus, nonrevotrans[chg_womenandethnicstatus == 1 | chg_womenandethnicstatus == 0])
 
 #6 chg_religioningovernment
+all_religioningovernment_1 <- tally(revotrans.clean[chg_religioningovernment == 1])
+all_religioningovernment_0 <- tally(revotrans.clean[chg_religioningovernment == 0])
+all_religioningovernment_ctest <- cor.test(revotrans.clean$polity_change, revotrans.clean$chg_religioningovernment)
+all_religioningovernment_ttest <- t.test(polity_change ~ chg_religioningovernment, revotrans.clean[chg_religioningovernment == 1 | chg_religioningovernment == 0])
+all_religioningovernment_wtest <- wilcox.test(polity_change ~ chg_religioningovernment, revotrans.clean[chg_religioningovernment == 1 | chg_religioningovernment == 0])
+
 revo_religioningovernment_1 <- tally(allrevos[chg_religioningovernment == 1])
 revo_religioningovernment_0 <- tally(allrevos[chg_religioningovernment == 0])
+revo_religioningovernment_ctest <- cor.test(allrevos$polity_change, allrevos$chg_religioningovernment)
+revo_religioningovernment_ttest <- t.test(polity_change ~ chg_religioningovernment, allrevos[chg_religioningovernment == 1 | chg_religioningovernment == 0])
+revo_religioningovernment_wtest <- wilcox.test(polity_change ~ chg_religioningovernment, allrevos[chg_religioningovernment == 1 | chg_religioningovernment == 0])
+
 nonrevo_religioningovernment_1 <- tally(nonrevotrans[chg_religioningovernment == 1])
 nonrevo_religioningovernment_0 <- tally(nonrevotrans[chg_religioningovernment == 0])
+nonrevo_religioningovernment_ctest <- cor.test(nonrevotrans$polity_change, nonrevotrans$chg_religioningovernment)
+nonrevo_religioningovernment_ttest <- t.test(polity_change ~ chg_religioningovernment, nonrevotrans[chg_religioningovernment == 1 | chg_religioningovernment == 0])
+nonrevo_religioningovernment_wtest <- wilcox.test(polity_change ~ chg_religioningovernment, nonrevotrans[chg_religioningovernment == 1 | chg_religioningovernment == 0])
+
 
 #7 chg_revolutionarycommittee
+all_revolutionarycommittee_1 <- tally(revotrans.clean[chg_revolutionarycommittee == 1])
+all_revolutionarycommittee_0 <- tally(revotrans.clean[chg_revolutionarycommittee == 0])
+all_revolutionarycommittee_ctest <- cor.test(revotrans.clean$polity_change, revotrans.clean$chg_revolutionarycommittee)
+all_revolutionarycommittee_ttest <- t.test(polity_change ~ chg_revolutionarycommittee, revotrans.clean[chg_revolutionarycommittee == 1 | chg_revolutionarycommittee  == 0])
+all_revolutionarycommittee_wtest <- wilcox.test(polity_change ~ chg_revolutionarycommittee , revotrans.clean[chg_revolutionarycommittee  == 1 | chg_revolutionarycommittee  == 0])
+
+
 revo_revolutionarycommittee_1 <- tally(allrevos[chg_revolutionarycommittee == 1])
 revo_revolutionarycommittee_0 <- tally(allrevos[chg_revolutionarycommittee == 0])
+revo_revolutionarycommittee_ctest <- cor.test(allrevos$polity_change, allrevos$chg_revolutionarycommittee)
+revo_revolutionarycommittee_ttest <- t.test(polity_change ~ chg_revolutionarycommittee, allrevos[chg_revolutionarycommittee == 1 | chg_revolutionarycommittee  == 0])
+revo_revolutionarycommittee_wtest <- wilcox.test(polity_change ~ chg_revolutionarycommittee , allrevos[chg_revolutionarycommittee  == 1 | chg_revolutionarycommittee  == 0])
+
 nonrevo_revolutionarycommittee_1 <- tally(nonrevotrans[chg_revolutionarycommittee == 1])
 nonrevo_revolutionarycommittee_0 <- tally(nonrevotrans[chg_revolutionarycommittee == 0])
+nonrevo_revolutionarycommittee_ctest <- cor.test(nonrevotrans$polity_change, nonrevotrans$chg_revolutionarycommittee)
+nonrevo_revolutionarycommittee_ttest <- t.test(polity_change ~ chg_revolutionarycommittee, nonrevotrans[chg_revolutionarycommittee == 1 | chg_revolutionarycommittee  == 0])
+nonrevo_revolutionarycommittee_wtest <- wilcox.test(polity_change ~ chg_revolutionarycommittee , nonrevotrans[chg_revolutionarycommittee  == 1 | chg_revolutionarycommittee  == 0])
 
-criteria2sub_summary <- matrix(c(), nrow = 2, ncol = 16, byrow = T)
-rownames(criteria2sub_summary) <- c("Revolutionary", "Non-Revolutionary")
-colnames(criteria2sub_summary) <- c()
+
+criteria2sub_summary <- matrix(c(all_executivepower_0, all_executivepower_1, all_executivepower_ttest$p.value, all_executivepower_wtest$p.value,
+                                 all_politicalideology_0, all_politicalideology_1, all_politicalideology_ttest$p.value, all_politicalideology_wtest$p.value,
+                                 all_nameofcountry_0, all_nameofcountry_1, all_nameofcountry_ttest$p.value, all_nameofcountry_wtest$p.value,
+                                 all_property_0, all_property_1, all_property_ttest$p.value, all_property_wtest$p.value,
+                                 all_womenandethnic_0, all_womenandethnic_1, all_womenandethnic_ttest$p.value, all_womenandethnic_wtest$p.value,
+                                 all_religioningovernment_0, all_religioningovernment_1, all_religioningovernment_ttest$p.value, all_religioningovernment_wtest$p.value,
+                                 all_revolutionarycommittee_0, all_revolutionarycommittee_1, all_revolutionarycommittee_ttest$p.value, all_revolutionarycommittee_wtest$p.value,
+                                 revo_executivepower_0, revo_executivepower_1, revo_executivepower_ttest$p.value, revo_executivepower_wtest$p.value,
+                                 revo_politicalideology_0, revo_politicalideology_1, revo_politicalideology_ttest$p.value, revo_politicalideology_wtest$p.value,
+                                 revo_nameofcountry_0, revo_nameofcountry_1, revo_nameofcountry_ttest$p.value, revo_nameofcountry_wtest$p.value,
+                                 revo_property_0, revo_property_1, revo_property_ttest$p.value, revo_property_wtest$p.value,
+                                 revo_womenandethnic_0, revo_womenandethnic_1, revo_womenandethnic_ttest$p.value, revo_womenandethnic_wtest$p.value,
+                                 revo_religioningovernment_0, revo_religioningovernment_1, revo_religioningovernment_ttest$p.value, revo_religioningovernment_wtest$p.value,
+                                 revo_revolutionarycommittee_0, revo_revolutionarycommittee_1, revo_revolutionarycommittee_ttest$p.value, revo_revolutionarycommittee_wtest$p.value,
+                                 nonrevo_executivepower_0, nonrevo_executivepower_1, nonrevo_executivepower_ttest$p.value, nonrevo_executivepower_wtest$p.value,
+                                 nonrevo_politicalideology_0, nonrevo_politicalideology_1, nonrevo_politicalideology_ttest$p.value, nonrevo_politicalideology_wtest$p.value,
+                                 nonrevo_nameofcountry_0, nonrevo_nameofcountry_1, nonrevo_nameofcountry_ttest$p.value, nonrevo_nameofcountry_wtest$p.value,
+                                 nonrevo_property_0, nonrevo_property_1, nonrevo_property_ttest$p.value, nonrevo_property_wtest$p.value,
+                                 nonrevo_womenandethnic_0, nonrevo_womenandethnic_1, nonrevo_womenandethnic_ttest$p.value, nonrevo_womenandethnic_wtest$p.value,
+                                 nonrevo_religioningovernment_0, nonrevo_religioningovernment_1, nonrevo_religioningovernment_ttest$p.value, nonrevo_religioningovernment_wtest$p.value,
+                                 nonrevo_revolutionarycommittee_0, nonrevo_revolutionarycommittee_1, nonrevo_revolutionarycommittee_ttest$p.value, nonrevo_revolutionarycommittee_wtest$p.value), 
+                               nrow = 3, ncol = 28, byrow = T)
+rownames(criteria2sub_summary) <- c("All", "Revolutionary", "Non-Revolutionary")
+colnames(criteria2sub_summary) <- c("Exec_count_0", "Exec_count_1", "Exec_ttest_pval", "Exec_wtest_pval",
+                                    "Politicalideology_count_0", "Politicalideology_count_1", "Politicalideology_ttest_pval", "Politicalideology_wtest_pval",
+                                    "Nameofcountry_count_0", "Nameofcountry_count_1", "Nameofcountry_ttest_pval", "Nameofcountry_wtest_pval",
+                                    "Property_ownership_count_0", "Property_ownership_count_1", "Property_ownership_ttest_pval", "Property_ownership_wtest_pval",
+                                    "Womenandethnic_count_0", "Womenandethnic_count_1", "Womenandethnic_ttest_pval", "Womenandethnic_wtest_pval",
+                                    "Religioningovt_count_0", "Religioningovt_count_1", "Religioningovt_ttest_pval", "Religioningovt_wtest_pval",
+                                    "RevCommittee_count_0", "RevCommittee_count_1", "RevCommittee_ttest_pval", "RevCommittee_wtest_pval")
 
 
 #### SECTION 9: STATISTICAL TESTS ####
@@ -625,7 +702,6 @@ ggplot(allrevos, aes(x = factor(totalcategorieschanged), y = autoc_change)) + ge
 
 
 
-
 #Transition length
 ggplot(allrevos, aes(x = last_transition_length)) + geom_density()
 
@@ -676,22 +752,13 @@ ggplot(na.omit(allrevos), aes(x = factor(chg_propertyowernship), y = polity_chan
 
 ggplot(na.omit(allrevos), aes(x = factor(chg_womenandethnicstatus), y = polity_change)) + geom_point() 
 ggplot(na.omit(allrevos), aes(x = factor(chg_womenandethnicstatus), y = polity_change)) + geom_boxplot() 
-cor.test(allrevos$polity_change, allrevos$chg_womenandethnicstatus)
-t.test(polity_change ~ chg_womenandethnicstatus, allrevos[chg_womenandethnicstatus == 1 | chg_womenandethnicstatus == 0])
-wilcox.test(polity_change ~ chg_womenandethnicstatus, allrevos[chg_womenandethnicstatus == 1 | chg_womenandethnicstatus == 0])
 
 ggplot(na.omit(allrevos), aes(x = factor(chg_religioningovernment), y = polity_change)) + geom_point() 
 ggplot(na.omit(allrevos), aes(x = factor(chg_religioningovernment), y = polity_change)) + geom_boxplot()
-cor.test(allrevos$polity_change, allrevos$chg_religioningovernment)
-t.test(polity_change ~ chg_religioningovernment, allrevos[chg_religioningovernment == 1 | chg_religioningovernment == 0])
-wilcox.test(polity_change ~ chg_religioningovernment, allrevos[chg_religioningovernment == 1 | chg_religioningovernment == 0])
 
 
 ggplot(na.omit(allrevos), aes(x = factor(chg_revolutionarycommittee), y = polity_change)) + geom_point() 
 ggplot(na.omit(allrevos), aes(x = factor(chg_revolutionarycommittee), y = polity_change)) + geom_boxplot()
-cor.test(allrevos$polity_change, allrevos$chg_revolutionarycommittee)
-t.test(polity_change ~ chg_revolutionarycommittee, allrevos[chg_revolutionarycommittee == 1 | chg_revolutionarycommittee  == 0])
-wilcox.test(polity_change ~ chg_revolutionarycommittee , allrevos[chg_revolutionarycommittee  == 1 | chg_revolutionarycommittee  == 0])
 
 
 ggplot(na.omit(allrevos), aes(x = factor(totalcategorieschanged), y = polity_change)) + geom_point() 
